@@ -9,7 +9,7 @@ namespace WarGame {
         /// </summary>
         static void Main(string[] args)
         {
-            using (Game1 game = new Game1())
+            using (ATGame game = new ATGame())
             {
                 game.Run();
             }

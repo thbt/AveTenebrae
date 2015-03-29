@@ -4,23 +4,27 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using WarGame;
 
 
 namespace WarGame {
-	class Board : GameComponent {
-		public HexTile[,] tiles;
-		public int width, height;
-		public int[,] map;
-		public Dictionary<HexTile, List<HexTile>> graph;
-		public Board(Game game) : base(game) {
-			map = new int[,] 
+	class Board : ATComponent {
+
+		public HexTile[,] tileMap {get; protected set;}
+		public readonly int width, height;
+		//public int[,] map;
+		public Dictionary<HexTile, List<HexTile>> tileGraph;
+		public Board(ATGame game) : base(game) {
+
+			int n = int.MaxValue;
+			int[,] tmpMap = new int[,] 
             {
                 {1,1,1,1,1,1,1},
                 {1,1,1,1,1,1,1},
-                {1,1,1,1,1,0,1},
-                {1,1,0,1,1,0,1},
-                {1,1,0,1,1,0,1},
-                {1,1,0,1,1,1,1},
+                {1,1,1,1,1,n,1},
+                {1,1,n,1,1,n,1},
+                {1,1,n,1,1,n,1},
+                {1,1,n,1,1,1,1},
             };
 
 			/* +---> x = upperbound1
@@ -29,15 +33,16 @@ namespace WarGame {
 			 * y = upperbound0
 			 */
 
-			width = map.GetUpperBound(1) + 1;
-			height = map.GetUpperBound(0) + 1;
+			width = tmpMap.GetUpperBound(1) + 1;
+			height = tmpMap.GetUpperBound(0) + 1;
 			Console.WriteLine("{0},{1}", width, height);
-			tiles = new HexTile[height, width];
+			tileMap = new HexTile[height, width];
 
 			for(int y = 0; y < height; y++) {
 				for(int x = 0; x < width; x++) {
-					tiles[y, x] = new HexTile(((Game1)this.Game), x, y, map[y, x] == 1 ? true : false, map[y, x] == 1 ? 1 : 0);
-					((Game1)this.Game).Components.Add(tiles[y, x]);
+					//à reviser?
+					tileMap[y, x] = new HexTile(atGame, x, y,tmpMap[y, x]);
+					atGame.Components.Add(tileMap[y, x]);
 				}
 			}
 		}
@@ -49,24 +54,24 @@ namespace WarGame {
 
 			List<HexTile> neighbours = new List<HexTile>();
 
-			Point p = tile.pos;
+			Point p = tile.Position;
 
-			bool xParity = tile.pos.X % 2 != 0; // true : pair, false : impair
+			bool xParity = tile.Position.X % 2 != 0; // true : pair, false : impair
 
 			if (xParity) { // pair
-				if (p.X > 0 && p.Y > 0) neighbours.Add(tiles[p.X - 1, p.Y - 1]);
-				if (p.Y > 0) neighbours.Add(tiles[p.X, p.Y - 1]);
-				if (p.X < width-1 && p.Y > 0) neighbours.Add(tiles[p.X + 1, p.Y - 1]);
-				if (p.X < width-1) neighbours.Add(tiles[p.X + 1, p.Y]);
-				if (p.X > 0) neighbours.Add(tiles[p.X - 1, p.Y]);
-				if (p.Y < height-1) neighbours.Add(tiles[p.X, p.Y + 1]);
+				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[p.X - 1, p.Y - 1]);
+				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
+				if (p.X < width-1 && p.Y > 0) neighbours.Add(tileMap[p.X + 1, p.Y - 1]);
+				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
+				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
+				if (p.Y < height-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
 			} else { // impair
-				if (p.X > 0) neighbours.Add(tiles[p.X - 1, p.Y]);
-				if (p.Y > 0) neighbours.Add(tiles[p.X, p.Y - 1]);
-				if (p.X < width-1) neighbours.Add(tiles[p.X + 1, p.Y]);
-				if (p.X < width-1 && p.Y < height-1) neighbours.Add(tiles[p.X + 1, p.Y + 1]);
-				if (p.Y < height-1) neighbours.Add(tiles[p.X, p.Y + 1]);
-				if (p.X > 0 && p.Y < height-1) neighbours.Add(tiles[p.X - 1, p.Y + 1]);
+				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
+				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
+				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
+				if (p.X < width-1 && p.Y < height-1) neighbours.Add(tileMap[p.X + 1, p.Y + 1]);
+				if (p.Y < height-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
+				if (p.X > 0 && p.Y < height-1) neighbours.Add(tileMap[p.X - 1, p.Y + 1]);
 			}
 
 			return neighbours;
@@ -75,7 +80,7 @@ namespace WarGame {
 		public List<HexTile> GetTileList() {
 			List<HexTile> tileList = new List<HexTile>();
 
-			foreach (HexTile t in tiles) {
+			foreach (HexTile t in tileMap) {
 				tileList.Add(t);
 			}
 
@@ -83,10 +88,10 @@ namespace WarGame {
 		}
 
 		public void CreateGraph() {
-			graph = new Dictionary<HexTile,List<HexTile>>(width * height);
-			foreach (HexTile t in this.tiles) { // tile
-				if (t.walkable)
-					graph.Add(t, this.GetNeighbours(t));
+			tileGraph = new Dictionary<HexTile,List<HexTile>>(width * height);
+			foreach (HexTile t in this.tileMap) { // tile
+				if (t.Walkable)
+					tileGraph.Add(t, this.GetNeighbours(t));
 			}
 		}
 

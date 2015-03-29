@@ -7,7 +7,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace WarGame {
 	public class ResourceManager {
-		public static Game1 Game;
+
+		//public static ATGame Game;
 		public static SpriteBatch SpriteBatch;
 		public static Random R = new Random();
 		public static SpriteFont font;

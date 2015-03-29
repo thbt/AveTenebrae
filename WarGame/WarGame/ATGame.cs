@@ -13,13 +13,14 @@ namespace WarGame {
 	/// <summary>
 	/// This is the main type for your game
 	/// </summary>
-	public class Game1 : Microsoft.Xna.Framework.Game {
+	public class ATGame : Microsoft.Xna.Framework.Game {
+
 		GraphicsDeviceManager graphics;
 		public SpriteBatch spriteBatch;
 
 		Board board;
 
-		public Game1() {
+		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 		}
