@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WarGame
 {
-	abstract class ATComponent : GameComponent
+	public abstract class ATComponent : GameComponent
 	{
 		protected ATGame atGame;
 
@@ -18,7 +18,7 @@ namespace WarGame
 		
 	}
 
-	abstract class ATDrawableComponent : DrawableGameComponent
+	public abstract class ATDrawableComponent : DrawableGameComponent
 	{
 		protected ATGame atGame;
 		public ATDrawableComponent(Game game)

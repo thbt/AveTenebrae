@@ -18,8 +18,9 @@ namespace WarGame {
 
 		GraphicsDeviceManager graphics;
 		public SpriteBatch spriteBatch;
+		InputManager inputManager;
 
-		Board board;
+		public Board GameBoard { get; protected set;}
 
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
@@ -34,7 +35,8 @@ namespace WarGame {
 		/// </summary>
 		protected override void Initialize() {
 			// TODO: Add your initialization logic here
-			board = new Board(this);
+			GameBoard = new Board(this);
+			inputManager = new InputManager(this);
 			base.Initialize();
 		}
 

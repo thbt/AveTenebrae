@@ -8,11 +8,11 @@ using WarGame;
 
 
 namespace WarGame {
-	class Board : ATComponent {
+	public class Board : ATComponent {
 
 		public HexTile[,] tileMap {get; protected set;}
-		public readonly int width, height;
-		//public int[,] map;
+		public readonly int ColumnCount, RowCount;
+		
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
 
@@ -33,13 +33,13 @@ namespace WarGame {
 			 * y = upperbound0
 			 */
 
-			width = tmpMap.GetUpperBound(1) + 1;
-			height = tmpMap.GetUpperBound(0) + 1;
-			Console.WriteLine("{0},{1}", width, height);
-			tileMap = new HexTile[height, width];
+			ColumnCount = tmpMap.GetUpperBound(1) + 1;
+			RowCount = tmpMap.GetUpperBound(0) + 1;
+			Console.WriteLine("Taille du plateau: {0},{1}", ColumnCount, RowCount);
+			tileMap = new HexTile[RowCount, ColumnCount];
 
-			for(int y = 0; y < height; y++) {
-				for(int x = 0; x < width; x++) {
+			for(int y = 0; y < RowCount; y++) {
+				for(int x = 0; x < ColumnCount; x++) {
 					//à reviser?
 					tileMap[y, x] = new HexTile(atGame, x, y,tmpMap[y, x]);
 					atGame.Components.Add(tileMap[y, x]);
@@ -54,25 +54,25 @@ namespace WarGame {
 
 			List<HexTile> neighbours = new List<HexTile>();
 
-			Point p = tile.Position;
+			Point p = tile.GridPosition;
 
-			bool xParity = tile.Position.X % 2 != 0; // true : pair, false : impair
+			bool xParity = tile.GridPosition.X % 2 != 0; // true : pair, false : impair
 			// Pour une tile (X,Y) avec x pair, les voisins sont :
 			if (xParity) { // pair
 				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[p.X - 1, p.Y - 1]);
 				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
-				if (p.X < width-1 && p.Y > 0) neighbours.Add(tileMap[p.X + 1, p.Y - 1]);
-				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
+				if (p.X < ColumnCount-1 && p.Y > 0) neighbours.Add(tileMap[p.X + 1, p.Y - 1]);
+				if (p.X < ColumnCount-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
 				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
-				if (p.Y < height-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
+				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
 			}// Pour une tile (X,Y) avec x impair, the neighbors are:
 			else { // impair
 				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
 				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
-				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
-				if (p.X < width-1 && p.Y < height-1) neighbours.Add(tileMap[p.X + 1, p.Y + 1]);
-				if (p.Y < height-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
-				if (p.X > 0 && p.Y < height-1) neighbours.Add(tileMap[p.X - 1, p.Y + 1]);
+				if (p.X < ColumnCount-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
+				if (p.X < ColumnCount-1 && p.Y < RowCount-1) neighbours.Add(tileMap[p.X + 1, p.Y + 1]);
+				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
+				if (p.X > 0 && p.Y < RowCount-1) neighbours.Add(tileMap[p.X - 1, p.Y + 1]);
 			}
 
 			return neighbours;
@@ -89,7 +89,7 @@ namespace WarGame {
 		}
 
 		public void CreateGraph() {
-			tileGraph = new Dictionary<HexTile,List<HexTile>>(width * height);
+			tileGraph = new Dictionary<HexTile,List<HexTile>>(ColumnCount * RowCount);
 			foreach (HexTile t in this.tileMap) { // tile
 				if (t.Walkable)
 					tileGraph.Add(t, this.GetNeighbours(t));
