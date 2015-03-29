@@ -48,16 +48,16 @@ namespace WarGame {
 		}
 		
 		public List<HexTile> GetNeighbours(HexTile tile) {
-			// Pour une tile (X,Y) avec x pair, les voisins sont :
 
-			// Pour une tile (X,Y) avec x impair, the neighbors are:
+
+			
 
 			List<HexTile> neighbours = new List<HexTile>();
 
 			Point p = tile.Position;
 
 			bool xParity = tile.Position.X % 2 != 0; // true : pair, false : impair
-
+			// Pour une tile (X,Y) avec x pair, les voisins sont :
 			if (xParity) { // pair
 				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[p.X - 1, p.Y - 1]);
 				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
@@ -65,7 +65,8 @@ namespace WarGame {
 				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
 				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
 				if (p.Y < height-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
-			} else { // impair
+			}// Pour une tile (X,Y) avec x impair, the neighbors are:
+			else { // impair
 				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
 				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
 				if (p.X < width-1) neighbours.Add(tileMap[p.X + 1, p.Y]);

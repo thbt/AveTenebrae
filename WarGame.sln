@@ -1,23 +1,37 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarGame", "WarGame\WarGame\WarGame.csproj", "{7796B540-8621-4F12-A598-2A67B41A6016}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "WarGameContent", "WarGame\WarGameContent\WarGameContent.contentproj", "{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarGameContent", "WarGame\WarGameContent\WarGameContent.contentproj", "{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{7796B540-8621-4F12-A598-2A67B41A6016}.Debug|x86.ActiveCfg = Debug|x86
 		{7796B540-8621-4F12-A598-2A67B41A6016}.Debug|x86.Build.0 = Debug|x86
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Release|Any CPU.ActiveCfg = Release|x86
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{7796B540-8621-4F12-A598-2A67B41A6016}.Release|Mixed Platforms.Build.0 = Release|x86
 		{7796B540-8621-4F12-A598-2A67B41A6016}.Release|x86.ActiveCfg = Release|x86
 		{7796B540-8621-4F12-A598-2A67B41A6016}.Release|x86.Build.0 = Release|x86
+		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Debug|x86.ActiveCfg = Debug|x86
+		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Release|Any CPU.ActiveCfg = Release|x86
+		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{8DCB0190-0EB0-47A8-AC5E-7E3E62221C94}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
