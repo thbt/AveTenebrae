@@ -12,7 +12,7 @@ namespace WarGame {
 		Texture2D texture;
 		Color color;
 
-		public HexTile parent;
+		public HexTile Parent { get; protected set; }
 		public Point Position { get; protected set;}
 		public int Cost { get; protected set;}
 		public bool Walkable { get { return Cost < int.MaxValue; } }
