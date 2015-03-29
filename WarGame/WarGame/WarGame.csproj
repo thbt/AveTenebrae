@@ -84,6 +84,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="ATGame.cs" />
     <Compile Include="ResourceManager.cs" />
+    <Compile Include="Unit.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

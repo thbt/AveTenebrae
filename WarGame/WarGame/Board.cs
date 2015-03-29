@@ -10,19 +10,27 @@ namespace WarGame {
 
 		public HexTile[,] tileMap {get; protected set;}
 		public readonly int ColumnCount, RowCount;
-		
+		public int BoardPixelWidth { get { return (int)tileMap[ColumnCount, RowCount].SpritePosition.X + tileMap[ColumnCount, RowCount].Width; } }
+		public int BoardPixelHeight { get { return (int)tileMap[ColumnCount, RowCount].SpritePosition.Y + tileMap[ColumnCount, RowCount].Height; } }
+
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
 
-			int n = int.MaxValue;
+			//variables pour tests, à cleaner plus tard
+			const int n = int.MaxValue;
+			const int p = 1;
+			const int f = 2;
+			const int h = 3;
+
+
 			int[,] tmpMap = new int[,] 
             {
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,n,1},
-                {1,1,n,1,1,n,1},
-                {1,1,n,1,1,n,1},
-                {1,1,n,1,1,1,1},
+                {p,p,p,p,p,p,p},
+                {f,f,f,f,p,f,f},
+                {f,f,f,f,p,h,f},
+                {h,h,h,h,p,h,p},
+                {p,p,p,p,p,p,p},
+                {p,p,h,p,p,p,p},
             };
 
 			/* +---> x = upperbound1
@@ -39,7 +47,17 @@ namespace WarGame {
 			for(int y = 0; y < RowCount; y++) {
 				for(int x = 0; x < ColumnCount; x++) {
 					//à reviser?
-					tileMap[y, x] = new HexTile(atGame, x, y,tmpMap[y, x]);
+					switch(tmpMap[y, x]){
+						case p: tileMap[y, x]=HexTile.CreatePlain(atGame,x,y);
+							break;
+						case h: tileMap[y, x] = HexTile.CreateHill(atGame, x, y);
+							break;
+						case f: tileMap[y, x] = HexTile.CreateForest(atGame, x, y);
+							break;
+	
+					}
+					
+					
 					atGame.Components.Add(tileMap[y, x]);
 				}
 			}

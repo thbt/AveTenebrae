@@ -19,19 +19,60 @@ namespace WarGame {
 		public Vector2 SpritePosition { get; protected set; }
 		public int Width { get { return texture.Width; } }
 		public int Height { get { return texture.Height; } }
-		public int Cost { get; protected set;}
+
 		public bool Walkable { get { return Cost < int.MaxValue; } }
 
+		//gameStats
+		public int Cost { get; protected set; }
+		public int defBonus { get; protected set; }
+		public int atkBonus { get; protected set; }
+		public int defMultiplier { get; protected set; }
+		public int atkMultiplier { get; protected set; }
 
 
-		public HexTile(ATGame game, int x, int y, int cost=1)
+
+		protected HexTile(ATGame game, int x, int y)
 			: base(game) {
 
-			GridPosition = new Point(x, y);
+			GridPosition = new Point(x, y);			
 			
-			Cost = cost;
 			
 			baseColor = this.Walkable ? Color.Green : Color.Brown;
+		}
+
+		public static HexTile CreatePlain(ATGame game, int x, int y)
+		{
+			HexTile tmp = new HexTile(game,x,y);
+			tmp.Cost = 1;
+			tmp.defBonus = 0;
+			tmp.atkBonus = 0;
+			tmp.defMultiplier = 1;
+			tmp.atkMultiplier = 1;
+			tmp.baseColor = Color.LightGreen;
+			return tmp;
+		}
+
+		public static HexTile CreateHill(ATGame game, int x, int y)
+		{
+			HexTile tmp = new HexTile(game, x, y);
+			tmp.Cost = 2;
+			tmp.defBonus = 0;
+			tmp.atkBonus = 2;
+			tmp.defMultiplier = 1;
+			tmp.atkMultiplier = 1;
+			tmp.baseColor = Color.MediumSeaGreen;
+			return tmp;
+		}
+		public static HexTile CreateForest(ATGame game, int x, int y)
+		{
+			HexTile tmp = new HexTile(game, x, y);
+			tmp.Cost = 2;
+			tmp.defBonus = 0;
+			tmp.atkBonus = 0;
+			tmp.defMultiplier = 1;
+			tmp.atkMultiplier = 1;
+			tmp.baseColor = Color.DarkGreen;
+			return tmp;
 		}
 		
 		protected override void LoadContent() {
@@ -45,6 +86,7 @@ namespace WarGame {
 			base.Initialize();
 
 			SpritePosition = new Vector2(GridPosition.X * Width * 0.75f, GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
+			Console.WriteLine(SpritePosition);
 		}
 
 		public override void Update(GameTime gameTime) {
