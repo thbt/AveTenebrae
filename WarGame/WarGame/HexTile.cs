@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+
 namespace WarGame {
 	public class HexTile : ATDrawableComponent {
 
@@ -39,7 +40,7 @@ namespace WarGame {
 		}
 
 		public override void Initialize() {
-			spriteBatch = new SpriteBatch(atGame.Game).GraphicsDevice);
+			spriteBatch = new SpriteBatch(atGame.GraphicsDevice);
 
 			base.Initialize();
 
