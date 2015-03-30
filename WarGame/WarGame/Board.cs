@@ -27,12 +27,14 @@ namespace WarGame {
 
 			int[,] tmpMap = new int[,] 
             {
-                {p,p,p,p,p,p,p},
-                {f,f,f,f,p,f,f},
-                {f,f,f,f,p,h,f},
-                {h,h,h,h,p,h,p},
-                {p,p,p,p,p,p,p},
-                {p,p,h,p,p,p,p},
+                {p,p,p,p,p,p,p,p,p,p,p,p,p},
+                {f,f,f,f,p,f,f,f,f,f,p,f,f},
+                {f,f,f,f,p,h,h,h,h,h,p,h,f},
+                {h,h,h,h,p,h,p,h,p,p,f,f,f},
+                {p,p,p,p,p,p,p,p,h,p,h,f,f},
+                {p,p,h,p,p,p,p,h,h,h,h,h,h},
+				{f,f,f,f,p,h,h,h,h,h,p,h,f},
+                {h,h,h,h,p,h,p,h,p,p,f,f,f},
             };
 
 			/* +---> x = upperbound1

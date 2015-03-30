@@ -10,6 +10,8 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using AStar;
 
+
+
 namespace WarGame {
 	/// <summary>
 	/// This is the main type for your game
@@ -20,6 +22,10 @@ namespace WarGame {
 		public SpriteBatch spriteBatch;
 		InputManager inputManager;
 
+		public Vector2 panning;
+		public int ScreenWidth { get; protected set; }
+		public int ScreenHeight { get; protected set; }
+
 		public Player playerA { get; private set;}
 		public Player playerB { get; private set;}
 		public Player activePlayer;
@@ -28,6 +34,11 @@ namespace WarGame {
 
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
+			ScreenWidth = 1280;
+			ScreenHeight = 720;
+			graphics.PreferredBackBufferWidth = ScreenWidth;
+			graphics.PreferredBackBufferHeight = ScreenHeight;
+			graphics.ApplyChanges();
 			Content.RootDirectory = "Content";
 		}
 
@@ -41,6 +52,7 @@ namespace WarGame {
 			// TODO: Add your initialization logic here
 			GameBoard = new Board(this);
 			inputManager = new InputManager(this);
+			panning = Vector2.Zero;
 			base.Initialize();
 		}
 

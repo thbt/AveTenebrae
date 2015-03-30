@@ -34,6 +34,8 @@ namespace WarGame
 
 		private List<HexTile> m_tileList;
 
+		private float m_panningStep = 1;
+			
 		public InputManager(Game game)
 			: base(game)
 		{
@@ -61,7 +63,7 @@ namespace WarGame
 			m_lastRefHex = m_tileList.ElementAt(m_tileList.Count/2+atGame.GameBoard.ColumnCount/2);
 			m_lastRangedNeighbourhood = new List<HexTile>();
 			//m_lastRefHex.offsetColor = new Color(1f, 0f, 0f, 0.75f);
-			
+
 		}
 
 		/// <summary>
@@ -103,7 +105,7 @@ namespace WarGame
 				}	
 				
 				//Console.WriteLine(distFromCenter);
-				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition.X, m_mPosition.Y);
+				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 2);
 				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
 
@@ -181,6 +183,23 @@ namespace WarGame
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				hex.ChangeToForest();
+			}
+
+			if (m_kbCurState.IsKeyDown(Keys.Left))
+			{
+				atGame.panning.X -= m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Right))
+			{
+				atGame.panning.X += m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Up))
+			{
+				atGame.panning.Y -= m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Down))
+			{
+				atGame.panning.Y += m_panningStep;
 			}
 		}
 	}

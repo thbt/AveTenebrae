@@ -13,10 +13,12 @@ namespace WarGame {
 		private Color baseColor;
 		public Vector4 colorOffset=Vector4.Zero;
 		public Vector4 colorMultiplier=Vector4.One;
+		protected Vector2 sprOrigin = Vector2.Zero;
+		protected Vector2 sprOffset=Vector2.Zero;
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
-		public Vector2 SpritePosition { get; protected set; }
+		public Vector2 SpritePosition { get { return sprOrigin+sprOffset;} }
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		public int Width { get { return texture.Width; } }
 		public int Height { get { return texture.Height; } }
@@ -102,33 +104,41 @@ namespace WarGame {
 		public override void Initialize() {
 
 			base.Initialize();
-			SpritePosition = new Vector2(
+			sprOrigin = new Vector2(
 				GridPosition.X * Width * 0.75f,
 				GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
 			Console.WriteLine(SpritePosition);
 		}
 
 		public override void Update(GameTime gameTime) {
+
+			sprOffset = atGame.panning;
 			base.Update(gameTime);
 		}
 
 		public override void Draw(GameTime gameTime) {
 
-			Color finalColor = new Color(baseColor.ToVector4()*colorMultiplier + colorOffset * colorOffset.W);			
-			
-			this.spriteBatch.Begin();
-			//hex
-			this.spriteBatch.Draw(texture, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
-			//texte
-			this.spriteBatch.DrawString(
-				ResourceManager.font,
-				GridPosition.X + "," + GridPosition.Y,
-				new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,
-				SpritePosition.Y + Width / 3f),
-				Color.Black);
+			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
+				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
+			{
+				Color finalColor = new Color(baseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
 
-			this.spriteBatch.End();
-			base.Draw(gameTime);
+				this.spriteBatch.Begin();
+				//hex
+				this.spriteBatch.Draw(texture, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+				//texte
+				this.spriteBatch.DrawString(
+					ResourceManager.font,
+					GridPosition.X + "," + GridPosition.Y,
+					//(SpritePosition+SpriteCenter)*0.5f,
+					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Width / 3f),
+					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
+					Color.Black);
+
+				this.spriteBatch.End();
+				base.Draw(gameTime);
+			}
+
 		}
 
 		public List<HexTile> GetNeighbours(){
