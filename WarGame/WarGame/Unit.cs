@@ -15,10 +15,12 @@ namespace WarGame
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	public abstract class Unit : ATDrawableComponent
+	public abstract class Unit : ATDrawableComponent, ISelectable
 	{
 
 		public Vector2 SpritePos { get; protected set; }
+		public HexTile OccupiedHex { get; protected set; }
+
 		public readonly int Movement;
 		public readonly int Strength;
 		public readonly int Range;
@@ -60,6 +62,12 @@ namespace WarGame
 			// TODO: Add your update code here
 
 			base.Update(gameTime);
+		}
+
+		public void Select()
+		{
+			atGame.activePlayer.selUnit = this;
+			OccupiedHex.Select();
 		}
 	}
 

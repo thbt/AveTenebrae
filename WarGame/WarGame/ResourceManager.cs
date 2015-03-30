@@ -10,7 +10,7 @@ namespace WarGame {
 
 		//public static ATGame Game;
 		public static SpriteBatch SpriteBatch;
-		public static Random R = new Random();
+		public static Random Random = new Random();
 		public static SpriteFont font;
 	}
 }

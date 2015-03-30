@@ -15,10 +15,12 @@ namespace WarGame
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	public class Player : ATComponent
+	public class Player : ATDrawableComponent
 	{
-		Unit selUnit;
-		HexTile selHex;
+		public Unit selUnit;
+		public HexTile selHex;
+
+		public Texture2D sprHexSelect;
 		public Player(Game game)
 			: base(game)
 		{
@@ -45,6 +47,32 @@ namespace WarGame
 			// TODO: Add your update code here
 
 			base.Update(gameTime);
+		}
+
+		public override void Draw(GameTime gameTime)
+		{
+			/*
+			if (this.selHex.SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth + Width
+				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight + Height)
+			{
+				Color finalColor = new Color(baseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+
+				this.spriteBatch.Begin();
+				//hex
+				this.spriteBatch.Draw(texture, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+				//texte
+				this.spriteBatch.DrawString(
+					ResourceManager.font,
+					GridPosition.X + "," + GridPosition.Y,
+					//(SpritePosition+SpriteCenter)*0.5f,
+					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Width / 3f),
+					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
+					Color.Black);
+
+				this.spriteBatch.End();
+				base.Draw(gameTime);
+			}
+			*/
 		}
 	}
 }

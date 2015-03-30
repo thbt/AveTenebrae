@@ -24,7 +24,7 @@ namespace WarGame {
 			const int f = 2;
 			const int h = 3;
 
-
+			/*
 			int[,] tmpMap = new int[,] 
             {
                 {p,p,p,p,p,p,p,p,p,p,p,p,p},
@@ -35,7 +35,15 @@ namespace WarGame {
                 {p,p,h,p,p,p,p,h,h,h,h,h,h},
 				{f,f,f,f,p,h,h,h,h,h,p,h,f},
                 {h,h,h,h,p,h,p,h,p,p,f,f,f},
-            };
+            };*/
+			int[,] tmpMap = new int[20, 20];
+			for (int y=0; y<tmpMap.GetLength(0); y++)
+				for (int x=0; x < tmpMap.GetLength(1); x++)
+				{
+					tmpMap[y, x] = ResourceManager.Random.Next(1, 4);
+				
+				}
+
 
 			/* +---> x = upperbound1
 			 * |

@@ -7,12 +7,15 @@ using Microsoft.Xna.Framework.Graphics;
 
 
 namespace WarGame {
-	public class HexTile : ATDrawableComponent {
-				
-		protected Texture2D texture;
+	public class HexTile : ATDrawableComponent, ISelectable {
+
+		protected Texture2D selectSpr;
+		protected Texture2D mainSpr;
 		private Color baseColor;
+
 		public Vector4 colorOffset=Vector4.Zero;
 		public Vector4 colorMultiplier=Vector4.One;
+
 		protected Vector2 sprOrigin = Vector2.Zero;
 		protected Vector2 sprOffset=Vector2.Zero;
 		
@@ -20,8 +23,8 @@ namespace WarGame {
 		public Point GridPosition { get; protected set;}
 		public Vector2 SpritePosition { get { return sprOrigin+sprOffset;} }
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
-		public int Width { get { return texture.Width; } }
-		public int Height { get { return texture.Height; } }
+		public int Width { get { return mainSpr.Width; } }
+		public int Height { get { return mainSpr.Height; } }
 		public bool Walkable { get { return Cost < int.MaxValue; } }
 
 		//gameStats
@@ -97,7 +100,8 @@ namespace WarGame {
 		}
 
 		protected override void LoadContent() {
-			texture = Game.Content.Load<Texture2D>("hex");
+			mainSpr = Game.Content.Load<Texture2D>("hex");
+			selectSpr = Game.Content.Load<Texture2D>("hexSelected");
 
 		}
 
@@ -125,7 +129,11 @@ namespace WarGame {
 
 				this.spriteBatch.Begin();
 				//hex
-				this.spriteBatch.Draw(texture, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+				this.spriteBatch.Draw(mainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+
+				if (atGame.activePlayer.selHex == this)
+					this.spriteBatch.Draw(selectSpr, new Vector2(SpritePosition.X, SpritePosition.Y), new Color(baseColor.ToVector4() *2));
+
 				//texte
 				this.spriteBatch.DrawString(
 					ResourceManager.font,
@@ -135,10 +143,16 @@ namespace WarGame {
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
 					Color.Black);
 
+
+
 				this.spriteBatch.End();
 				base.Draw(gameTime);
 			}
 
+		}
+		public void Select()
+		{
+			atGame.activePlayer.selHex = this;
 		}
 
 		public List<HexTile> GetNeighbours(){

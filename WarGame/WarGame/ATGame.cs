@@ -53,6 +53,7 @@ namespace WarGame {
 			GameBoard = new Board(this);
 			inputManager = new InputManager(this);
 			panning = Vector2.Zero;
+			activePlayer = new Player(this);
 			base.Initialize();
 		}
 
@@ -64,7 +65,6 @@ namespace WarGame {
 			// Create a new SpriteBatch, which can be used to draw textures.
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 			ResourceManager.font = Content.Load<SpriteFont>("Fonts/Arial");
-
 			// TODO: use this.Content to load your game content here
 		}
 

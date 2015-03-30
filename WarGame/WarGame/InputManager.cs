@@ -34,7 +34,7 @@ namespace WarGame
 
 		private List<HexTile> m_tileList;
 
-		private float m_panningStep = 1;
+		private float m_panningStep = 2.5f;
 			
 		public InputManager(Game game)
 			: base(game)
@@ -151,7 +151,7 @@ namespace WarGame
 		public void OnLeftMouseClick(GameTime gameTime)
 		{
 
-
+			atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
 			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
 
 		}
