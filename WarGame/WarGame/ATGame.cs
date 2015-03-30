@@ -20,6 +20,10 @@ namespace WarGame {
 		public SpriteBatch spriteBatch;
 		InputManager inputManager;
 
+		public Player playerA { get; private set;}
+		public Player playerB { get; private set;}
+		public Player activePlayer;
+
 		public Board GameBoard { get; protected set;}
 
 		public ATGame() {

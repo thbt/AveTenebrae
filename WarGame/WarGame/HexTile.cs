@@ -10,8 +10,9 @@ namespace WarGame {
 	public class HexTile : ATDrawableComponent {
 				
 		protected Texture2D texture;
-		Color baseColor;
-		public Vector4 colorOffset;
+		private Color baseColor;
+		public Vector4 colorOffset=Vector4.Zero;
+		public Vector4 colorMultiplier=Vector4.One;
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
@@ -19,7 +20,6 @@ namespace WarGame {
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		public int Width { get { return texture.Width; } }
 		public int Height { get { return texture.Height; } }
-
 		public bool Walkable { get { return Cost < int.MaxValue; } }
 
 		//gameStats
@@ -29,50 +29,71 @@ namespace WarGame {
 		public int defMultiplier { get; protected set; }
 		public int atkMultiplier { get; protected set; }
 
+		public Unit Occupant { get; set; }
 
 
 		protected HexTile(ATGame game, int x, int y)
 			: base(game) {
 
-			GridPosition = new Point(x, y);						
+			GridPosition = new Point(x, y);
+			Occupant = null;	
 			baseColor = this.Walkable ? Color.Green : Color.Brown;
 		}
 
 		public static HexTile CreatePlain(ATGame game, int x, int y)
 		{
 			HexTile tmp = new HexTile(game,x,y);
-			tmp.Cost = 1;
-			tmp.defBonus = 0;
-			tmp.atkBonus = 0;
-			tmp.defMultiplier = 1;
-			tmp.atkMultiplier = 1;
-			tmp.baseColor = Color.LightGreen;
+			tmp.ChangeToPlain();
 			return tmp;
 		}
 
+		public HexTile ChangeToPlain()
+		{
+
+			Cost = 1;
+			defBonus = 0;
+			atkBonus = 0;
+			defMultiplier = 1;
+			atkMultiplier = 1;
+			baseColor = Color.SandyBrown;
+			return this;
+		}
 		public static HexTile CreateHill(ATGame game, int x, int y)
 		{
 			HexTile tmp = new HexTile(game, x, y);
-			tmp.Cost = 2;
-			tmp.defBonus = 0;
-			tmp.atkBonus = 2;
-			tmp.defMultiplier = 1;
-			tmp.atkMultiplier = 1;
-			tmp.baseColor = Color.MediumSeaGreen;
+			tmp.ChangeToHill();
 			return tmp;
+		}
+
+		public HexTile ChangeToHill()
+		{
+
+			Cost = 2;
+			defBonus = 0;
+			atkBonus = 2;
+			defMultiplier = 1;
+			atkMultiplier = 1;
+			baseColor = Color.MediumSeaGreen;
+			return this;
 		}
 		public static HexTile CreateForest(ATGame game, int x, int y)
 		{
 			HexTile tmp = new HexTile(game, x, y);
-			tmp.Cost = 2;
-			tmp.defBonus = 0;
-			tmp.atkBonus = 0;
-			tmp.defMultiplier = 1;
-			tmp.atkMultiplier = 1;
-			tmp.baseColor = Color.DarkGreen;
+			tmp.ChangeToForest();
 			return tmp;
 		}
-		
+
+		public HexTile ChangeToForest()
+		{	
+			Cost = 2;
+			defBonus = 0;
+			atkBonus = 0;
+			defMultiplier = 1;
+			atkMultiplier = 1;
+			baseColor = Color.DarkGreen;
+			return this;
+		}
+
 		protected override void LoadContent() {
 			texture = Game.Content.Load<Texture2D>("hex");
 
@@ -93,7 +114,7 @@ namespace WarGame {
 
 		public override void Draw(GameTime gameTime) {
 
-			Color finalColor = new Color(baseColor.ToVector4()+colorOffset);			
+			Color finalColor = new Color(baseColor.ToVector4()*colorMultiplier + colorOffset * colorOffset.W);			
 			
 			this.spriteBatch.Begin();
 			//hex

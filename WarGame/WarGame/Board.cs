@@ -12,10 +12,9 @@ namespace WarGame {
 		public readonly int ColumnCount, RowCount;
 		public int BoardPixelWidth { get { return (int)tileMap[RowCount - 1, ColumnCount - 1].SpritePosition.X + tileMap[RowCount - 1, ColumnCount - 1].Width; } }
 		public int BoardPixelHeight { get { return (int)tileMap[RowCount - 1, ColumnCount - 1].SpritePosition.Y + tileMap[RowCount - 1, ColumnCount - 1].Height; } }
-
 		public int HexPixelWidth { get { return (int)tileMap[0, 0].Width; } }
 		public int HexPixelHeight { get { return (int)tileMap[0, 0].Height; } }
-
+		
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
 
@@ -155,6 +154,11 @@ namespace WarGame {
 			}
 			return nextHex;
 
+		}
+
+		public HexTile GetHexAtCoordinates(Vector2 coords)
+		{
+			return GetHexAtCoordinates(coords.X, coords.Y);
 		}
 
 		public List<HexTile> GetNeighboursRanged(HexTile source, int range)

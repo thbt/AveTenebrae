@@ -17,14 +17,16 @@ namespace WarGame
 	/// </summary>
 	public class InputManager : ATComponent
 	{
-
+		
 		private Cursor m_cursor;
 		//timestamp du dernier debut de click
 		private double m_leftButtonHoldTimer = 0;
 		//temps en ms avant que le click soit considéré comme maintenu
-		private double m_clickInterval = 125;
+		private double m_clickInterval = 150;
 
 		private MouseState m_mCurState, m_mLastState;
+		private KeyboardState m_kbCurState, m_kbLastState;
+
 		private Vector2 m_mPosition;
 
 		private HexTile m_lastRefHex;
@@ -48,6 +50,10 @@ namespace WarGame
 			// TODO: Add your initialization code here
 			m_mCurState = Mouse.GetState();
 			m_mLastState = m_mCurState;
+
+			m_kbCurState = Keyboard.GetState();
+			m_kbLastState = m_kbCurState;
+
 			m_mPosition = Vector2.Zero;
 			m_cursor = new Cursor(atGame);
 			base.Initialize();
@@ -67,8 +73,12 @@ namespace WarGame
 			// TODO: Add your update code here
 			
 			m_mCurState = Mouse.GetState();
+			m_kbCurState = Keyboard.GetState();
+
 			m_mPosition.X = m_mCurState.X;
 			m_mPosition.Y = m_mCurState.Y;
+
+			KeyboardUpdate(gameTime);
 
 			MouseHover(gameTime);
 			MouseLeftUpdate(gameTime);
@@ -77,6 +87,7 @@ namespace WarGame
 			m_mLastState = m_mCurState;
 			
 		}
+
 
 		private void MouseHover(GameTime gameTime)
 		{
@@ -87,7 +98,8 @@ namespace WarGame
 			{
 				foreach (HexTile h in m_lastRangedNeighbourhood)
 				{
-					h.colorOffset = new Vector4(0,0,0,0);
+					h.colorMultiplier = Vector4.One;
+					h.colorOffset = Vector4.Zero;
 				}	
 				
 				//Console.WriteLine(distFromCenter);
@@ -97,10 +109,11 @@ namespace WarGame
 
 				foreach (HexTile h in rangedNeighbourhood)
 				{
-					h.colorOffset = new Vector4(1f, -0.25f, -0.25f, 0.5f);
-				}			
-				
-				nextHex.colorOffset = new Vector4(1f, -0.25f, -0.25f, 0.75f);
+					h.colorMultiplier = new Vector4(1.25f, 1.5f, 1.25f, 1);
+					h.colorOffset = new Vector4(0.5f, -0.25f, -0.25f, 0.5f);
+				}
+
+				nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
 				m_lastRangedNeighbourhood = rangedNeighbourhood;
 				m_lastRefHex = nextHex;
 
@@ -138,40 +151,7 @@ namespace WarGame
 
 
 			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
-			float xPos = (float)m_mPosition.X;
-			float yPos = (float)m_mPosition.Y;
-			float gWidth = (float)(atGame.GameBoard.BoardPixelWidth) * (float)atGame.GameBoard.tileMap.GetLength(0);
-			float gHeight = (float)(atGame.GameBoard.BoardPixelHeight) * (float)atGame.GameBoard.tileMap.GetLength(1);
-		
-			//! ZONE TEMPORAIREMENT BROUILLON 	
-			//foreach (atGame.GameBoard.GetTileList()
-			/*
 
-			Vector2 gPosition = new Vector2(
-				xPos / gWidth * 0.75f,
-				yPos / gHeight + (((int)xPos % 2 != 0) ? (gHeight / 2f) : 0));
-			int column = (int)(xPos / atGame.GameBoard.HexPixelWidth);
-			int row;
-
-			bool colIsOdd = (int)column % 2 != 0;
-
-			// Is the row an even number?
-			if (colIsOdd) // No: Calculate normally
-				row = (int)(yPos / (float)atGame.GameBoard.HexPixelHeight);
-			else // Yes: Offset mouse.x to match the offset of the row
-				row = (int)((yPos + atGame.GameBoard.HexPixelHeight / 2f) / (float)atGame.GameBoard.HexPixelHeight);
-
-
-
-			// column is more complex because it has to
-			// take into account that every other row
-			// is offset by half the width of a hexagon
-
-			//return hexagons[row][column];
-
-			Console.WriteLine("Mouse gridpos: " +column+ " "+row);
-			//Board selBoard=atGame.GameBoard.tileMap[];
-			*/
 		}
 
 		public void OnLeftMousePressed(GameTime gameTime)
@@ -181,6 +161,27 @@ namespace WarGame
 		public void OnLeftMouseReleased(GameTime gameTime)
 		{
 
+		}
+
+
+		private void KeyboardUpdate(GameTime gameTime)
+		{
+
+			if (m_kbCurState.IsKeyDown(Keys.F1))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				hex.ChangeToPlain();
+			}
+			if (m_kbCurState.IsKeyDown(Keys.F2))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				hex.ChangeToHill();
+			}
+			if (m_kbCurState.IsKeyDown(Keys.F3))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				hex.ChangeToForest();
+			}
 		}
 	}
 }
