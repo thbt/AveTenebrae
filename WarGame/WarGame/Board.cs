@@ -75,23 +75,23 @@ namespace WarGame {
 
 			bool xParity = tile.GridPosition.X % 2 != 0; // true : pair, false : impair
 			// Pour une tile (X,Y) avec x pair, les voisins sont :
-			if (xParity) { // pair
-				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[p.X - 1, p.Y - 1]);
-				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
-				if (p.X < ColumnCount-1 && p.Y > 0) neighbours.Add(tileMap[p.X + 1, p.Y - 1]);
-				if (p.X < ColumnCount-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
-				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
-				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
-			}// Pour une tile (X,Y) avec x impair, the neighbors are:
+			if (!xParity) { // pair
+				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X - 1]);//NO
+				if (p.Y > 0) neighbours.Add(tileMap[p.Y - 1,p.X]); //N
+				if (p.X < ColumnCount-1 && p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X + 1]); //NE
+				if (p.X < ColumnCount-1) neighbours.Add(tileMap[ p.Y,p.X + 1]); //SE
+				if (p.X > 0) neighbours.Add(tileMap[p.Y,p.X - 1]);
+				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.Y + 1,p.X]);
+			}// Pour une tile (X,Y) avec x impair, the neighbors are:			
 			else { // impair
-				if (p.X > 0) neighbours.Add(tileMap[p.X - 1, p.Y]);
-				if (p.Y > 0) neighbours.Add(tileMap[p.X, p.Y - 1]);
-				if (p.X < ColumnCount-1) neighbours.Add(tileMap[p.X + 1, p.Y]);
-				if (p.X < ColumnCount-1 && p.Y < RowCount-1) neighbours.Add(tileMap[p.X + 1, p.Y + 1]);
-				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.X, p.Y + 1]);
-				if (p.X > 0 && p.Y < RowCount-1) neighbours.Add(tileMap[p.X - 1, p.Y + 1]);
+				if (p.X > 0) neighbours.Add(tileMap[ p.Y,p.X - 1]);
+				if (p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X]);
+				if (p.X < ColumnCount-1) neighbours.Add(tileMap[ p.Y,p.X + 1]);
+				if (p.X < ColumnCount-1 && p.Y < RowCount-1) neighbours.Add(tileMap[ p.Y + 1,p.X + 1]);
+				if (p.Y < RowCount-1) neighbours.Add(tileMap[ p.Y + 1,p.X]);
+				if (p.X > 0 && p.Y < RowCount-1) neighbours.Add(tileMap[p.Y + 1,p.X - 1]);
 			}
-
+			
 			return neighbours;
 		}
 
@@ -169,7 +169,7 @@ namespace WarGame {
 
 				foreach (HexTile sub in neighbours)
 				{
-					childrenNeighbours.UnionWith(GetNeighboursRanged(source, range));
+					childrenNeighbours.UnionWith(GetNeighboursRanged(sub, range));
 				}
 				neighbours.AddRange(childrenNeighbours);
 			}

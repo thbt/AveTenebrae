@@ -28,6 +28,8 @@ namespace WarGame
 		private Vector2 m_mPosition;
 
 		private HexTile m_lastRefHex;
+		private List<HexTile> m_lastRangedNeighbourhood;
+
 		private List<HexTile> m_tileList;
 
 		public InputManager(Game game)
@@ -51,6 +53,7 @@ namespace WarGame
 			base.Initialize();
 			m_tileList = atGame.GameBoard.GetTileList();
 			m_lastRefHex = m_tileList.ElementAt(m_tileList.Count/2+atGame.GameBoard.ColumnCount/2);
+			m_lastRangedNeighbourhood = new List<HexTile>();
 			//m_lastRefHex.offsetColor = new Color(1f, 0f, 0f, 0.75f);
 			
 		}
@@ -82,17 +85,23 @@ namespace WarGame
 			//si oui, recherche du nouveau par detection du centre le plus proche du point (hypothenuse)
 			if (distFromCenter > atGame.GameBoard.HexPixelWidth / 2f)
 			{
+				foreach (HexTile h in m_lastRangedNeighbourhood)
+				{
+					h.colorOffset = new Vector4(0,0,0,0);
+				}	
+				
 				//Console.WriteLine(distFromCenter);
 				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition.X, m_mPosition.Y);
-				/*List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 3);
+				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 2);
+				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
 
 				foreach (HexTile h in rangedNeighbourhood)
 				{
-					h.colorOffset = new Vector4(1f, -0.25f, -0.25f, 0.75f);
-				}
-				*/
-				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+					h.colorOffset = new Vector4(1f, -0.25f, -0.25f, 0.5f);
+				}			
+				
 				nextHex.colorOffset = new Vector4(1f, -0.25f, -0.25f, 0.75f);
+				m_lastRangedNeighbourhood = rangedNeighbourhood;
 				m_lastRefHex = nextHex;
 
 			}
