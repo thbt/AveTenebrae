@@ -156,5 +156,26 @@ namespace WarGame {
 			return nextHex;
 
 		}
+
+		public List<HexTile> GetNeighboursRanged(HexTile source, int range)
+		{			
+			//prend la liste des voisins directs
+			List<HexTile> neighbours = GetNeighbours(source);
+
+			//si portée supérieure à 0, va chercher les voisins lointains
+			if (--range > 0)
+			{
+				HashSet<HexTile> childrenNeighbours = new HashSet<HexTile>();
+
+				foreach (HexTile sub in neighbours)
+				{
+					childrenNeighbours.UnionWith(GetNeighboursRanged(source, range));
+				}
+				neighbours.AddRange(childrenNeighbours);
+			}
+
+			return neighbours;
+			
+		}
 	}
 }

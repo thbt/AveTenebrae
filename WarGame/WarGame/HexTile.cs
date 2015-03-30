@@ -11,7 +11,7 @@ namespace WarGame {
 				
 		protected Texture2D texture;
 		Color baseColor;
-		public Color offsetColor;
+		public Vector4 colorOffset;
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
@@ -93,7 +93,7 @@ namespace WarGame {
 
 		public override void Draw(GameTime gameTime) {
 
-			Color finalColor = new Color(baseColor.ToVector4()+offsetColor.ToVector4());			
+			Color finalColor = new Color(baseColor.ToVector4()+colorOffset);			
 			
 			this.spriteBatch.Begin();
 			//hex
@@ -109,5 +109,12 @@ namespace WarGame {
 			this.spriteBatch.End();
 			base.Draw(gameTime);
 		}
+
+		public List<HexTile> GetNeighbours(){
+
+			throw new NotImplementedException();
+		}
+
 	}
+
 }

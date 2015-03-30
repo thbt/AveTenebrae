@@ -88,6 +88,7 @@
     <Compile Include="Unit.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AT_diagram_v1.png" />
     <Content Include="Game.ico" />
     <Content Include="GameThumbnail.png">
       <XnaPlatformSpecific>true</XnaPlatformSpecific>
