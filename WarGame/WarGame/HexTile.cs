@@ -8,15 +8,15 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace WarGame {
 	public class HexTile : ATDrawableComponent {
-
-		SpriteBatch spriteBatch;
+				
 		protected Texture2D texture;
 		Color baseColor;
-		Color offsetColor;
+		public Color offsetColor;
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
 		public Vector2 SpritePosition { get; protected set; }
+		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		public int Width { get { return texture.Width; } }
 		public int Height { get { return texture.Height; } }
 
@@ -34,9 +34,7 @@ namespace WarGame {
 		protected HexTile(ATGame game, int x, int y)
 			: base(game) {
 
-			GridPosition = new Point(x, y);			
-			
-			
+			GridPosition = new Point(x, y);						
 			baseColor = this.Walkable ? Color.Green : Color.Brown;
 		}
 
@@ -81,11 +79,11 @@ namespace WarGame {
 		}
 
 		public override void Initialize() {
-			spriteBatch = new SpriteBatch(atGame.GraphicsDevice);
 
 			base.Initialize();
-
-			SpritePosition = new Vector2(GridPosition.X * Width * 0.75f, GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
+			SpritePosition = new Vector2(
+				GridPosition.X * Width * 0.75f,
+				GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
 			Console.WriteLine(SpritePosition);
 		}
 
@@ -95,7 +93,7 @@ namespace WarGame {
 
 		public override void Draw(GameTime gameTime) {
 
-			Color finalColor = baseColor;			
+			Color finalColor = new Color(baseColor.ToVector4()+offsetColor.ToVector4());			
 			
 			this.spriteBatch.Begin();
 			//hex

@@ -10,8 +10,11 @@ namespace WarGame {
 
 		public HexTile[,] tileMap {get; protected set;}
 		public readonly int ColumnCount, RowCount;
-		public int BoardPixelWidth { get { return (int)tileMap[ColumnCount, RowCount].SpritePosition.X + tileMap[ColumnCount, RowCount].Width; } }
-		public int BoardPixelHeight { get { return (int)tileMap[ColumnCount, RowCount].SpritePosition.Y + tileMap[ColumnCount, RowCount].Height; } }
+		public int BoardPixelWidth { get { return (int)tileMap[RowCount - 1, ColumnCount - 1].SpritePosition.X + tileMap[RowCount - 1, ColumnCount - 1].Width; } }
+		public int BoardPixelHeight { get { return (int)tileMap[RowCount - 1, ColumnCount - 1].SpritePosition.Y + tileMap[RowCount - 1, ColumnCount - 1].Height; } }
+
+		public int HexPixelWidth { get { return (int)tileMap[0, 0].Width; } }
+		public int HexPixelHeight { get { return (int)tileMap[0, 0].Height; } }
 
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
@@ -66,8 +69,6 @@ namespace WarGame {
 		public List<HexTile> GetNeighbours(HexTile tile) {
 
 
-			
-
 			List<HexTile> neighbours = new List<HexTile>();
 
 			Point p = tile.GridPosition;
@@ -95,12 +96,12 @@ namespace WarGame {
 		}
 
 		public List<HexTile> GetTileList() {
-			List<HexTile> tileList = new List<HexTile>();
-
+			//List<HexTile> tileList = new List<HexTile>();
+			/*
 			foreach (HexTile t in tileMap) {
 				tileList.Add(t);
-			}
-
+			}*/
+			List<HexTile> tileList = tileMap.Cast<HexTile>().ToList();
 			return tileList;
 		}
 
@@ -135,6 +136,25 @@ namespace WarGame {
 			// TODO: Add your update code here
 
 			base.Update(gameTime);
+		}
+
+		public HexTile GetHexAtCoordinates(float x, float y){
+			
+			HexTile nextHex = null;
+			float bestDist = float.PositiveInfinity;
+			Vector2 position = new Vector2(x, y);
+
+			foreach (HexTile hex in GetTileList())
+			{
+				float testDist = Vector2.Distance(position, hex.SpriteCenter);
+				if (testDist < bestDist)
+				{
+					bestDist = testDist;
+					nextHex = hex;
+				}
+			}
+			return nextHex;
+
 		}
 	}
 }
