@@ -17,6 +17,7 @@ namespace WarGame
 	/// </summary>
 	public class InputManager : ATComponent
 	{
+		private int colorCycle=1; //pour tester les palettes de couleurs
 		
 		private Cursor m_cursor;
 		//timestamp du dernier debut de click
@@ -87,6 +88,7 @@ namespace WarGame
 
 			base.Update(gameTime);
 			m_mLastState = m_mCurState;
+			m_kbLastState = m_kbCurState;
 			
 		}
 
@@ -168,7 +170,7 @@ namespace WarGame
 
 		private void KeyboardUpdate(GameTime gameTime)
 		{
-
+			//options debug: edition de types de tiles
 			if (m_kbCurState.IsKeyDown(Keys.F1))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
@@ -185,6 +187,33 @@ namespace WarGame
 				hex.ChangeToForest();
 			}
 
+			//options debug: placement d'unités
+			if (m_kbCurState.IsKeyDown(Keys.F5))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Infantry test = new Infantry(atGame,atGame.activePlayer);
+				test.PutOnHex(hex);
+			}
+
+			//options debug: cycling de couleurs de team
+			if (m_kbCurState.IsKeyDown(Keys.C) && m_kbLastState.IsKeyUp(Keys.C))
+			{
+				colorCycle = (++colorCycle % 3);
+				switch (colorCycle)
+				{
+					//red
+					case 0: atGame.activePlayer.TeamColor = new Color(255,64,64,255); break;
+					//green
+					case 1: atGame.activePlayer.TeamColor = new Color(32, 192, 32, 255); break;
+					//blue
+					case 2: atGame.activePlayer.TeamColor = new Color(0, 128, 255, 255); break;
+					default: atGame.activePlayer.TeamColor = Color.White; break;
+				}
+				
+				//atGame.activePlayer.teamColor.
+			}
+
+			//panning camera
 			if (m_kbCurState.IsKeyDown(Keys.Left))
 			{
 				atGame.panning.X -= m_panningStep;

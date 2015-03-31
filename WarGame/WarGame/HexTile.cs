@@ -131,10 +131,11 @@ namespace WarGame {
 				//hex
 				this.spriteBatch.Draw(mainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
 
+				//hex selectionné? si oui, le marquer
 				if (atGame.activePlayer.selHex == this)
-					this.spriteBatch.Draw(selectSpr, new Vector2(SpritePosition.X, SpritePosition.Y), new Color(baseColor.ToVector4() *2));
+					this.spriteBatch.Draw(selectSpr, new Vector2(SpritePosition.X, SpritePosition.Y), new Color(baseColor.ToVector4() *1.975f));
 
-				//texte
+				//texte coords
 				this.spriteBatch.DrawString(
 					ResourceManager.font,
 					GridPosition.X + "," + GridPosition.Y,

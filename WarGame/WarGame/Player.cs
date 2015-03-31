@@ -20,11 +20,32 @@ namespace WarGame
 		public Unit selUnit;
 		public HexTile selHex;
 
+		private Color m_teamColor;
+
 		public Texture2D sprHexSelect;
+
+		public List<Unit> ownedUnits;
+
+		public Color TeamColor
+		{
+			get { return m_teamColor; }
+			set
+			{
+				m_teamColor = value;
+				foreach (Unit u in ownedUnits)
+				{
+					u.PaletteSwap(m_teamColor);
+				}
+			}
+		}
+
 		public Player(Game game)
 			: base(game)
 		{
 			// TODO: Construct any child components here
+			ownedUnits = new List<Unit>();
+			m_teamColor = Color.White;
+			
 		}
 
 		/// <summary>

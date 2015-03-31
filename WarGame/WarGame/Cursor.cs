@@ -27,8 +27,9 @@ namespace WarGame
 		{
 			// TODO: Construct any child components here
 			position = new Vector2(Mouse.GetState().X,Mouse.GetState().Y);
-
 			atGame.Components.Add(this);
+
+			this.DrawOrder = 999;
 		}
 
 		/// <summary>

@@ -51,9 +51,11 @@ namespace WarGame {
 		protected override void Initialize() {
 			// TODO: Add your initialization logic here
 			GameBoard = new Board(this);
+			activePlayer = new Player(this);
+
 			inputManager = new InputManager(this);
 			panning = Vector2.Zero;
-			activePlayer = new Player(this);
+			
 			base.Initialize();
 		}
 
