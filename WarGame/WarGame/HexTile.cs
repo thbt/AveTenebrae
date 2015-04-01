@@ -154,6 +154,10 @@ namespace WarGame {
 		public void Select()
 		{
 			atGame.activePlayer.selHex = this;
+			if (atGame.activePlayer.selHex.Occupant != null && atGame.activePlayer.selHex.Occupant.Owner == atGame.activePlayer)
+			{
+				atGame.activePlayer.selHex.Occupant.Select();
+			}
 		}
 
 		public List<HexTile> GetNeighbours(){

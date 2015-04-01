@@ -152,7 +152,12 @@ namespace WarGame
 
 		public void OnLeftMouseClick(GameTime gameTime)
 		{
-
+			foreach ( Unit u in atGame.activePlayer.ownedUnits )
+			{
+				if ( u.IsUnderCursor(m_mCurState) )		{
+					
+				}
+			}
 			atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
 			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
 
@@ -192,6 +197,18 @@ namespace WarGame
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Infantry test = new Infantry(atGame,atGame.activePlayer);
+				test.PutOnHex(hex);
+			}
+			if (m_kbCurState.IsKeyDown(Keys.F6))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Cavalry test = new Cavalry(atGame, atGame.activePlayer);
+				test.PutOnHex(hex);
+			}
+			if (m_kbCurState.IsKeyDown(Keys.F7))
+			{
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Archer test = new Archer(atGame, atGame.activePlayer);
 				test.PutOnHex(hex);
 			}
 

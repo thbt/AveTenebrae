@@ -17,9 +17,23 @@ namespace WarGame
 	/// </summary>
 	public abstract class Unit : ATDrawableComponent, ISelectable
 	{
-		protected Texture2D spriteSheet;
+		protected static Texture2D spriteSheet;
 		protected Texture2D coloredSpriteSheet;
-		protected string spriteSheet_path;
+		protected static string spriteSheet_path;
+
+		protected int iconSize = 64;
+
+		protected float blinkAlpha = 0.5f;
+		protected float blinkSign = 1f;
+		protected double blinkTimer = 0;
+		protected float blinkDuration = 1.5f;
+
+		protected float bounceYPixels = 8;
+		protected float bounceYSpeed = 1;
+		protected double bounceTimer = 0;
+		protected float bounceDuration = 1f;
+		
+		
 
 		protected Rectangle drawArea;
 		public Vector4 colorOffset = Vector4.Zero;
@@ -74,7 +88,7 @@ namespace WarGame
 
 		protected override void LoadContent()
 		{
-
+			spriteSheet_path = "icon_sheet";
 			spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 			coloredSpriteSheet = spriteSheet;
 			base.LoadContent();			
@@ -97,11 +111,15 @@ namespace WarGame
 		public void Select()
 		{
 			atGame.activePlayer.selUnit = this;
-			OccupiedHex.Select();
+			//OccupiedHex.Select();
 		}
 
 		public void PutOnHex(HexTile hex)
 		{
+			//si deja placé ailleurs, liberer la case de départ
+			if (OccupiedHex != null)
+				OccupiedHex.Occupant = null;
+
 			if (hex.Occupant != null)
 			{
 				//
@@ -111,9 +129,7 @@ namespace WarGame
 			else
 				hex.Occupant = this;
 
-			//si deja placé ailleurs, liberer la case de départ
-			if (OccupiedHex != null)			
-				OccupiedHex.Occupant = null;
+
 
 			sprOrigin = hex.SpritePosition;
 			
@@ -127,14 +143,41 @@ namespace WarGame
 			//	if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 			//	&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
+
 				Color finalColor = Color.White;
+				if (this == Owner.selUnit)
+				{
+
+					blinkTimer = (blinkTimer+gameTime.ElapsedGameTime.TotalSeconds);
+					bounceTimer = (bounceTimer+gameTime.ElapsedGameTime.TotalSeconds);
+
+					if ( bounceTimer >= bounceDuration)
+					{
+						bounceTimer%=bounceDuration;
+						bounceYSpeed = -bounceYSpeed;
+					}
+					sprOffset.Y = (sprOffset.Y - (1f / bounceYPixels) * bounceYSpeed / bounceDuration);
+
+					
+					if (blinkTimer >= blinkDuration)
+					{
+						blinkTimer %= blinkDuration;
+						blinkSign = -blinkSign;
+					}
+					
+					blinkAlpha = (float)blinkTimer;
+					finalColor *=( 1.5f - ((blinkAlpha) * 1f / blinkDuration) % 1f) ;
+					
+				}
+				else
+					finalColor= Color.White;
 				//finalColor.A = 0;
 
 				this.spriteBatch.Begin();
 				//hex
 
 
-				this.spriteBatch.Draw(coloredSpriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+				this.spriteBatch.Draw(coloredSpriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y), drawArea, finalColor);
 
 				//hex selectionné? si oui, le marquer
 				/*if (atGame.activePlayer.selUnit == this)
@@ -179,18 +222,27 @@ namespace WarGame
 			coloredSpriteSheet.SetData(pixels);
 			
 		}
+
+		public bool IsUnderCursor(MouseState mouseState)
+		{
+			Rectangle boundingBox=new Rectangle((int)SpritePosition.X,(int)SpritePosition.Y,drawArea.Width,drawArea.Height);
+			return (boundingBox.Contains(new Point(mouseState.X, mouseState.Y)));
+
+		}
 	}
+
+
 
 	public class Infantry : Unit
 	{
 		public Infantry(ATGame game, Player owner) : base(game, owner, 2, 2, 1, 0) {
-			
+			drawArea = new Rectangle(0, 0, iconSize, iconSize);
 			Console.WriteLine("Infantry Spawned");
 		}
 
 		protected override void LoadContent()
 		{
-			base.spriteSheet_path = "units_infantry";
+			//spriteSheet_path = "icon_sheet";
 			base.LoadContent();
 			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 
@@ -202,12 +254,12 @@ namespace WarGame
 	public class Cavalry : Unit
 	{
 		public Cavalry(ATGame game, Player owner) : base(game, owner, 4, 4, 1, 0) {
-			
+			drawArea = new Rectangle(iconSize, 0, iconSize, iconSize);
 		}
 
 		protected override void LoadContent()
 		{
-			base.spriteSheet_path = "units_cavalry";
+			//spriteSheet_path = "units_cavalry";
 			base.LoadContent();
 			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 
@@ -218,12 +270,12 @@ namespace WarGame
 	public class Archer : Unit
 	{
 		public Archer(ATGame game, Player owner) : base(game, owner, 2, 1, 2, 4) {
-			
+			drawArea = new Rectangle(iconSize*2, 0, iconSize, iconSize);
 		}
 
 		protected override void LoadContent()
 		{
-			base.spriteSheet_path = "units_archer";
+			//spriteSheet_path = "units_archer";
 			base.LoadContent();
 			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 
