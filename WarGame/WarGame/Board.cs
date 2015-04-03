@@ -191,5 +191,60 @@ namespace WarGame {
 			return neighbours;
 			
 		}
+
+		/// <summary>
+		/// NE MARCHE PAS!
+		/// Selectionne N cases par propagation à partir de celle choisie comme centre
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="hexGroup"></param>
+		/// <param name="count"></param>
+		public void GetNeighbourGroup(HexTile source, HashSet<HexTile> hexGroup, int count)
+		{
+			//prend la liste des voisins directs
+			List<HexTile> directNeighbours = GetNeighbours(source);
+
+			if (hexGroup.Count < count)
+			{
+
+				foreach (HexTile sub in directNeighbours)
+				{
+
+					List<HexTile> farNeighbours = GetNeighbours(sub);
+					
+
+						if (hexGroup.Count < count)
+						{
+
+
+							sub.DisplayStatus = HexTile.HexDisplayStatus.HexDS_Dispatchable;
+							hexGroup.Add(sub);
+							if ((sub.DisplayStatus & HexTile.HexDisplayStatus.HexDS_Dispatchable)
+								!= HexTile.HexDisplayStatus.HexDS_Dispatchable)
+							{
+								hexGroup.Union<HexTile>(farNeighbours);
+										
+							}
+
+
+
+							GetNeighbourGroup(sub, hexGroup, count);
+							
+							
+							
+
+						}
+
+					
+
+				}
+				hexGroup.Add(source);
+				source.DisplayStatus = HexTile.HexDisplayStatus.HexDS_Dispatchable;
+	
+			
+			}
+
+
+		}
 	}
 }

@@ -17,15 +17,15 @@ namespace WarGame
 	/// </summary>
 	public class Player : ATDrawableComponent
 	{
+		
 		public Unit selUnit;
-		public HexTile selHex;
-
-		private Color m_teamColor;
+		public HexTile selHex;		
 
 		public Texture2D sprHexSelect;
 
 		public List<Unit> ownedUnits;
 
+		private Color m_teamColor;
 		public Color TeamColor
 		{
 			get { return m_teamColor; }
@@ -39,13 +39,21 @@ namespace WarGame
 			}
 		}
 
-		public Player(Game game)
+		public Player(ATGame game)
+			: this(game, Color.White)
+		{
+			// TODO: Construct any child components here
+			ownedUnits = new List<Unit>();
+	
+		}
+
+		public Player(ATGame game,Color teamColor)
 			: base(game)
 		{
 			// TODO: Construct any child components here
 			ownedUnits = new List<Unit>();
-			m_teamColor = Color.White;
-			
+			TeamColor = teamColor;
+
 		}
 
 		/// <summary>

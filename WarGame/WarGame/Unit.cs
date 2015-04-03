@@ -22,30 +22,20 @@ namespace WarGame
 		protected static string spriteSheet_path;
 
 		protected int iconSize = 64;
-
-		protected float blinkAlpha = 0.5f;
-		protected float blinkSign = 1f;
-		protected double blinkTimer = 0;
-		protected float blinkDuration = 1.5f;
-
-		protected float bounceYPixels = 8;
-		protected float bounceYSpeed = 1;
-		protected double bounceTimer = 0;
-		protected float bounceDuration = 1f;
-		
-		
-
+		        
 		protected Rectangle drawArea;
 		public Vector4 colorOffset = Vector4.Zero;
 		public Vector4 colorMultiplier = Vector4.One;
 
+        //variables de positionnement
 		protected Vector2 sprOrigin = Vector2.Zero;
 		protected Vector2 sprOffset = Vector2.Zero;
 		public int Width { get { return drawArea.Width; } }
 		public int Height { get { return drawArea.Height; } }
 		public Vector2 SpritePosition { get { return sprOrigin+sprOffset;} }
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
-		public Player Owner { get; protected set; }
+		
+        public Player Owner { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
 
@@ -72,6 +62,8 @@ namespace WarGame
 			RangedStrength=rangedStr;
 			Owner = owner;
 			Owner.ownedUnits.Add(this);
+
+            
 			// TODO: Construct any child components here
 		}
 
@@ -83,7 +75,8 @@ namespace WarGame
 		{
 			// TODO: Add your initialization code here
 			
-			base.Initialize();			
+			base.Initialize();
+			
 		}
 
 		protected override void LoadContent()
@@ -91,9 +84,8 @@ namespace WarGame
 			spriteSheet_path = "icon_sheet";
 			spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 			coloredSpriteSheet = spriteSheet;
+			
 			base.LoadContent();			
-			
-			
 		}
 
 		/// <summary>
@@ -103,15 +95,28 @@ namespace WarGame
 		public override void Update(GameTime gameTime)
 		{
 			// TODO: Add your update code here
+
+            sprOffset = atGame.Panning;
+
 			//PaletteSwap(atGame.activePlayer.TeamColor);
 			base.Update(gameTime);
 			
 		}
-
+				
 		public void Select()
 		{
-			atGame.activePlayer.selUnit = this;
-			//OccupiedHex.Select();
+			if (atGame.ActivePlayer.selUnit != null )
+				atGame.ActivePlayer.selUnit.UnSelect();
+
+			atGame.ActivePlayer.selUnit = this;
+			SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
+
+		}
+
+		public void UnSelect()
+		{
+			AlphaBlinkEnable = false;
+			BounceEnable = false;
 		}
 
 		public void PutOnHex(HexTile hex)
@@ -128,10 +133,9 @@ namespace WarGame
 			}
 			else
 				hex.Occupant = this;
-
-
-
+			
 			sprOrigin = hex.SpritePosition;
+			this.PaletteSwap(Owner.TeamColor);
 			
 			this.OccupiedHex = hex;
 		}
@@ -139,55 +143,29 @@ namespace WarGame
 		public override void Draw(GameTime gameTime)
 		{
 			
-			//Console.WriteLine("draw unit");
-			//	if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
-			//	&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
+			//check si dans la partie visible
+			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
+			&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
 
-				Color finalColor = Color.White;
-				if (this == Owner.selUnit)
-				{
-
-					blinkTimer = (blinkTimer+gameTime.ElapsedGameTime.TotalSeconds);
-					bounceTimer = (bounceTimer+gameTime.ElapsedGameTime.TotalSeconds);
-
-					if ( bounceTimer >= bounceDuration)
-					{
-						bounceTimer%=bounceDuration;
-						bounceYSpeed = -bounceYSpeed;
-					}
-					sprOffset.Y = (sprOffset.Y - (1f / bounceYPixels) * bounceYSpeed / bounceDuration);
-
-					
-					if (blinkTimer >= blinkDuration)
-					{
-						blinkTimer %= blinkDuration;
-						blinkSign = -blinkSign;
-					}
-					
-					blinkAlpha = (float)blinkTimer;
-					finalColor *=( 1.5f - ((blinkAlpha) * 1f / blinkDuration) % 1f) ;
-					
-				}
-				else
-					finalColor= Color.White;
-				//finalColor.A = 0;
+                finalColor = Color.White;
 
 				this.spriteBatch.Begin();
+
+                if (DrawFX != null )
+                    base.DrawFX(gameTime);
+
 				//hex
-
-
-				this.spriteBatch.Draw(coloredSpriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y), drawArea, finalColor);
-
-				//hex selectionné? si oui, le marquer
-				/*if (atGame.activePlayer.selUnit == this)
-					this.spriteBatch.Draw(spriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y), new Color((atGame.activePlayer.teamColor.ToVector4() *1.975f));*/
+				this.spriteBatch.Draw(coloredSpriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y)+bounceOffset, drawArea, finalColor);
 
 				this.spriteBatch.End();
-				
+				base.Draw(gameTime);
 			}
-			base.Draw(gameTime);
+			
 		}
+
+
+ 
 
 		public void PaletteSwap(Color targetColor)
 		{
@@ -233,9 +211,9 @@ namespace WarGame
 
 
 
-	public class Infantry : Unit
+	public class Heavy : Unit
 	{
-		public Infantry(ATGame game, Player owner) : base(game, owner, 2, 2, 1, 0) {
+		public Heavy(ATGame game, Player owner) : base(game, owner, 2, 2, 1, 0) {
 			drawArea = new Rectangle(0, 0, iconSize, iconSize);
 			Console.WriteLine("Infantry Spawned");
 		}
@@ -251,9 +229,9 @@ namespace WarGame
 
 	}
 
-	public class Cavalry : Unit
+	public class Scout : Unit
 	{
-		public Cavalry(ATGame game, Player owner) : base(game, owner, 4, 4, 1, 0) {
+		public Scout(ATGame game, Player owner) : base(game, owner, 4, 4, 1, 0) {
 			drawArea = new Rectangle(iconSize, 0, iconSize, iconSize);
 		}
 
@@ -267,9 +245,9 @@ namespace WarGame
 
 	}
 
-	public class Archer : Unit
+	public class Sniper : Unit
 	{
-		public Archer(ATGame game, Player owner) : base(game, owner, 2, 1, 2, 4) {
+		public Sniper(ATGame game, Player owner) : base(game, owner, 2, 1, 2, 4) {
 			drawArea = new Rectangle(iconSize*2, 0, iconSize, iconSize);
 		}
 

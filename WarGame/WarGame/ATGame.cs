@@ -22,13 +22,14 @@ namespace WarGame {
 		public SpriteBatch spriteBatch;
 		InputManager inputManager;
 
-		public Vector2 panning;
+		public Vector2 Panning;
 		public int ScreenWidth { get; protected set; }
 		public int ScreenHeight { get; protected set; }
 
-		public Player playerA { get; private set;}
-		public Player playerB { get; private set;}
-		public Player activePlayer;
+		public Player PlayerA { get; private set;}
+		public Player PlayerB { get; private set;}
+		public Player ActivePlayer;
+		public Player OpposingPlayer;
 
 		public Board GameBoard { get; protected set;}
 
@@ -38,6 +39,9 @@ namespace WarGame {
 			ScreenHeight = 720;
 			graphics.PreferredBackBufferWidth = ScreenWidth;
 			graphics.PreferredBackBufferHeight = ScreenHeight;
+			graphics.SynchronizeWithVerticalRetrace = true;
+			graphics.PreferMultiSampling = true;
+			
 			graphics.ApplyChanges();
 			Content.RootDirectory = "Content";
 		}
@@ -51,11 +55,15 @@ namespace WarGame {
 		protected override void Initialize() {
 			// TODO: Add your initialization logic here
 			GameBoard = new Board(this);
-			activePlayer = new Player(this);
+
+			PlayerA = new Player(this,TeamColors.Red);
+			PlayerB = new Player(this,TeamColors.Blue);
+			ActivePlayer = PlayerA;
+			OpposingPlayer = PlayerB;
 
 			inputManager = new InputManager(this);
-			panning = Vector2.Zero;
-			
+			Panning = Vector2.Zero;
+			spriteBatch = new SpriteBatch(GraphicsDevice);
 			base.Initialize();
 		}
 
@@ -98,11 +106,33 @@ namespace WarGame {
 		/// </summary>
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime) {
-			GraphicsDevice.Clear(Color.CornflowerBlue);
 
+			spriteBatch.Begin();
+			GraphicsDevice.Clear(Color.CornflowerBlue);
+			
 			// TODO: Add your drawing code here
 
 			base.Draw(gameTime);
+			spriteBatch.End();
+		}
+
+		public void SwapPlayerTurns()
+		{
+			if (ActivePlayer.selUnit!=null)
+				ActivePlayer.selUnit.UnSelect();
+			if (ActivePlayer.selHex != null)
+				ActivePlayer.selHex.UnSelect();
+
+			Player oldActivePlayer = ActivePlayer;
+			ActivePlayer = OpposingPlayer;
+			OpposingPlayer = oldActivePlayer;
+		}
+
+
+		public void DispatchPhase()
+		{
+			int unitsPerTeam = (int)Math.Sqrt(GameBoard.GetTileList().Count);
+			int dispatchSpotsPerTeam = unitsPerTeam * 2;
 		}
 	}
 }

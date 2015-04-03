@@ -9,6 +9,11 @@ using Microsoft.Xna.Framework.Graphics;
 namespace WarGame {
 	public class HexTile : ATDrawableComponent, ISelectable {
 
+		public HexDisplayStatus DisplayStatus { get; set; }
+		public enum HexDisplayStatus {
+			HexDS_Normal=1,
+			HexDS_Dispatchable=2 };		
+
 		protected Texture2D selectSpr;
 		protected Texture2D mainSpr;
 		private Color baseColor;
@@ -40,6 +45,7 @@ namespace WarGame {
 		protected HexTile(ATGame game, int x, int y)
 			: base(game) {
 
+			DisplayStatus = HexDisplayStatus.HexDS_Normal;
 			GridPosition = new Point(x, y);
 			Occupant = null;	
 			baseColor = this.Walkable ? Color.Green : Color.Brown;
@@ -116,7 +122,7 @@ namespace WarGame {
 
 		public override void Update(GameTime gameTime) {
 
-			sprOffset = atGame.panning;
+			sprOffset = atGame.Panning;
 			base.Update(gameTime);
 		}
 
@@ -125,45 +131,62 @@ namespace WarGame {
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
-				Color finalColor = new Color(baseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+				
+				finalColor = new Color(baseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+
+				if ((DisplayStatus & HexDisplayStatus.HexDS_Dispatchable) == HexDisplayStatus.HexDS_Dispatchable)
+				{
+					//colorMultiplier = new Vector4(0.25f, 0.25f, 0.25f, 1);
+					DrawColorBlink(gameTime);
+				}
+
+				if (DrawFX != null)
+					base.DrawFX(gameTime);
 
 				this.spriteBatch.Begin();
 				//hex
 				this.spriteBatch.Draw(mainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
 
 				//hex selectionné? si oui, le marquer
-				if (atGame.activePlayer.selHex == this)
+				if (atGame.ActivePlayer.selHex == this)
 					this.spriteBatch.Draw(selectSpr, new Vector2(SpritePosition.X, SpritePosition.Y), new Color(baseColor.ToVector4() *1.975f));
 
+
 				//texte coords
-				this.spriteBatch.DrawString(
+				/*this.spriteBatch.DrawString(
 					ResourceManager.font,
 					GridPosition.X + "," + GridPosition.Y,
 					//(SpritePosition+SpriteCenter)*0.5f,
 					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Width / 3f),
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
-					Color.Black);
+					Color.Black);*/
 
 
 
 				this.spriteBatch.End();
-				base.Draw(gameTime);
+				//base.Draw(gameTime);
 			}
 
 		}
 		public void Select()
 		{
-			atGame.activePlayer.selHex = this;
-			if (atGame.activePlayer.selHex.Occupant != null && atGame.activePlayer.selHex.Occupant.Owner == atGame.activePlayer)
+			atGame.ActivePlayer.selHex = this;
+			if (atGame.ActivePlayer.selHex.Occupant != null && atGame.ActivePlayer.selHex.Occupant.Owner == atGame.ActivePlayer)
 			{
-				atGame.activePlayer.selHex.Occupant.Select();
+				atGame.ActivePlayer.selHex.Occupant.Select();
 			}
 		}
+		public void UnSelect()
+		{
+			atGame.ActivePlayer.selHex = null;
+		}
+
 
 		public List<HexTile> GetNeighbours(){
 
 			throw new NotImplementedException();
 		}
+
 
 	}
 

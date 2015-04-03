@@ -100,6 +100,7 @@ namespace WarGame
 			//si oui, recherche du nouveau par detection du centre le plus proche du point (hypothenuse)
 			if (distFromCenter > atGame.GameBoard.HexPixelWidth / 2f)
 			{
+
 				foreach (HexTile h in m_lastRangedNeighbourhood)
 				{
 					h.colorMultiplier = Vector4.One;
@@ -110,6 +111,7 @@ namespace WarGame
 				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 2);
 				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+
 
 				foreach (HexTile h in rangedNeighbourhood)
 				{
@@ -152,7 +154,7 @@ namespace WarGame
 
 		public void OnLeftMouseClick(GameTime gameTime)
 		{
-			foreach ( Unit u in atGame.activePlayer.ownedUnits )
+			foreach ( Unit u in atGame.ActivePlayer.ownedUnits )
 			{
 				if ( u.IsUnderCursor(m_mCurState) )		{
 					
@@ -196,19 +198,20 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F5))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Infantry test = new Infantry(atGame,atGame.activePlayer);
+				//if ( hex. )
+				Heavy test = new Heavy(atGame,atGame.ActivePlayer);
 				test.PutOnHex(hex);
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F6))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Cavalry test = new Cavalry(atGame, atGame.activePlayer);
+				Scout test = new Scout(atGame, atGame.ActivePlayer);
 				test.PutOnHex(hex);
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F7))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Archer test = new Archer(atGame, atGame.activePlayer);
+				Sniper test = new Sniper(atGame, atGame.ActivePlayer);
 				test.PutOnHex(hex);
 			}
 
@@ -219,33 +222,50 @@ namespace WarGame
 				switch (colorCycle)
 				{
 					//red
-					case 0: atGame.activePlayer.TeamColor = new Color(255,64,64,255); break;
+					case 0: atGame.ActivePlayer.TeamColor = TeamColors.Red; break;
 					//green
-					case 1: atGame.activePlayer.TeamColor = new Color(32, 192, 32, 255); break;
+					case 1: atGame.ActivePlayer.TeamColor = TeamColors.Green; break;
 					//blue
-					case 2: atGame.activePlayer.TeamColor = new Color(0, 128, 255, 255); break;
-					default: atGame.activePlayer.TeamColor = Color.White; break;
+					case 2: atGame.ActivePlayer.TeamColor = TeamColors.Blue; break;
+					default: atGame.ActivePlayer.TeamColor = Color.White; break;
 				}
 				
 				//atGame.activePlayer.teamColor.
 			}
 
+			//options debug: test de selection de group par nombre (propagation d'une source)
+			if (m_kbCurState.IsKeyDown(Keys.D) && m_kbLastState.IsKeyUp(Keys.D))
+			{
+				HashSet<HexTile> dispatchArea= new HashSet<HexTile>();
+				atGame.GameBoard.GetNeighbourGroup(
+					atGame.GameBoard.GetHexAtCoordinates(m_mPosition),
+					dispatchArea, 10);
+		
+			}
+
+
+			//options debug: swap player turns
+			if (m_kbCurState.IsKeyDown(Keys.S) && m_kbLastState.IsKeyUp(Keys.S))
+			{
+				atGame.SwapPlayerTurns();
+			}
+
 			//panning camera
 			if (m_kbCurState.IsKeyDown(Keys.Left))
 			{
-				atGame.panning.X -= m_panningStep;
+				atGame.Panning.X -= m_panningStep;
 			}
 			if (m_kbCurState.IsKeyDown(Keys.Right))
 			{
-				atGame.panning.X += m_panningStep;
+				atGame.Panning.X += m_panningStep;
 			}
 			if (m_kbCurState.IsKeyDown(Keys.Up))
 			{
-				atGame.panning.Y -= m_panningStep;
+				atGame.Panning.Y -= m_panningStep;
 			}
 			if (m_kbCurState.IsKeyDown(Keys.Down))
 			{
-				atGame.panning.Y += m_panningStep;
+				atGame.Panning.Y += m_panningStep;
 			}
 		}
 	}

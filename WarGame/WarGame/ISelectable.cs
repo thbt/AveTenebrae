@@ -8,5 +8,6 @@ namespace WarGame
 	interface ISelectable
 	{
 		void Select();
+		void UnSelect();
 	}
 }
