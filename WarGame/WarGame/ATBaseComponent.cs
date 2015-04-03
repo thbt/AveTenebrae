@@ -60,7 +60,9 @@ namespace WarGame
 					{
 						colorBlinkCycle = new List<Color>();
 						colorBlinkCycle.Add(TeamColors.Red);
+						colorBlinkCycle.Add(Color.White);
 						colorBlinkCycle.Add(TeamColors.Blue);
+						colorBlinkCycle.Add(Color.White);
 					}
 						
 					DrawFX += DrawColorBlink;
@@ -124,7 +126,9 @@ namespace WarGame
 
 			colorBlinkCycle = new List<Color>();
 			colorBlinkCycle.Add(TeamColors.Red);
+			colorBlinkCycle.Add(Color.White);
 			colorBlinkCycle.Add(TeamColors.Blue);
+			colorBlinkCycle.Add(Color.White);
 		}
 
 		public override void Initialize()
@@ -216,15 +220,30 @@ namespace WarGame
 				//if (BlinkEnable)
 				blinkSign = -blinkSign;
 			}
-			
+						
 			Vector4 previous = colorBlinkCycle.ElementAt(colorCurrentIndex).ToVector4();
 			Vector4 next = colorBlinkCycle.ElementAt(nextIndex).ToVector4();
+			float timerStep = colorBlinkTimer / colorBlinkDuration;
 
-			Vector4 mix = (next * (float)Math.Sin(Math.PI * colorBlinkTimer / colorBlinkDuration)
-							-(previous * (float)Math.Sin(Math.PI * colorBlinkTimer / colorBlinkDuration)) );
+			/*
+			
+			float piPerStep = (float)Math.PI * step;
+			float sinPi = (float)Math.Sin(piPerStep);		
+			Vector4 previousWeighted = previous * Math.Abs((float)(sinPi));
+			Vector4 nextWeighted = next * Math.Abs((float)(sinPi));			
 
+			Vector4 mix = (previousWeighted + nextWeighted)/2f;
+			mix.W = (previousWeighted.W + nextWeighted.W) / 2f;
+			*/
+
+			Vector4 mix;
+			Vector4.SmoothStep(ref previous, ref next, timerStep, out mix);
+						
 			//Console.WriteLine(blinkAlpha);
-			finalColor = new Color(finalColor.ToVector4() + mix);
+			byte a=finalColor.A;
+
+			finalColor = new Color((finalColor.ToVector4()*0.33f + mix*0.67f ) );
+			finalColor.A = a;
 		}
 
 		/// <summary>

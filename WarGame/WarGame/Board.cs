@@ -223,12 +223,12 @@ namespace WarGame {
 								!= HexTile.HexDisplayStatus.HexDS_Dispatchable)
 							{
 								hexGroup.Union<HexTile>(farNeighbours);
-										
+								GetNeighbourGroup(sub, hexGroup, count);		
 							}
 
 
 
-							GetNeighbourGroup(sub, hexGroup, count);
+							
 							
 							
 							
