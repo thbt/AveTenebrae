@@ -15,20 +15,11 @@ namespace WarGame
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	public class InputManager : ATComponent
+	public partial class InputManager : ATComponent
 	{
 		private int colorCycle=1; //pour tester les palettes de couleurs
 		
-		private FreeCursor m_cursor;
-		//timestamp du dernier debut de click
-		private double m_leftButtonHoldTimer = 0;
-		//temps en ms avant que le click soit considéré comme maintenu
-		private double m_clickInterval = 150;
-
-		private MouseState m_mCurState, m_mLastState;
 		private KeyboardState m_kbCurState, m_kbLastState;
-
-		private Vector2 m_mPosition;
 
 		private HexTile m_lastRefHex;
 		private List<HexTile> m_lastRangedNeighbourhood;
@@ -36,6 +27,8 @@ namespace WarGame
 		private List<HexTile> m_tileList;
 
 		private float m_panningStep = 2.5f;
+		private delegate void PhaseInputManager(GameTime gameTime);
+		private PhaseInputManager PhaseKeyboardInput;
 			
 		public InputManager(Game game)
 			: base(game)
@@ -64,6 +57,8 @@ namespace WarGame
 			m_lastRefHex = m_tileList.ElementAt(m_tileList.Count/2+atGame.GameBoard.ColumnCount/2);
 			m_lastRangedNeighbourhood = new List<HexTile>();
 			//m_lastRefHex.offsetColor = new Color(1f, 0f, 0f, 0.75f);
+			PhaseKeyboardInput=delegate (GameTime gameTime){};
+			PhaseKeyboardInput += DispatchKeyboardInput;
 
 		}
 
@@ -81,10 +76,8 @@ namespace WarGame
 			m_mPosition.X = m_mCurState.X;
 			m_mPosition.Y = m_mCurState.Y;
 
+			MouseUpdate(gameTime);
 			KeyboardUpdate(gameTime);
-
-			MouseHover(gameTime);
-			MouseLeftUpdate(gameTime);
 
 			base.Update(gameTime);
 			m_mLastState = m_mCurState;
@@ -93,90 +86,34 @@ namespace WarGame
 		}
 
 
-		private void MouseHover(GameTime gameTime)
-		{
-			//verifie si la souris est sortie du dernier hex
-			float distFromCenter = Vector2.Distance(m_lastRefHex.SpriteCenter, m_mPosition);
-			//si oui, recherche du nouveau par detection du centre le plus proche du point (hypothenuse)
-			if (distFromCenter > atGame.GameBoard.HexPixelWidth / 2f)
-			{
-
-				foreach (HexTile h in m_lastRangedNeighbourhood)
-				{
-					h.colorMultiplier = Vector4.One;
-					h.colorOffset = Vector4.Zero;
-				}	
-				
-				//Console.WriteLine(distFromCenter);
-				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 2);
-				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-
-
-				foreach (HexTile h in rangedNeighbourhood)
-				{
-					h.colorMultiplier = new Vector4(1.25f, 1.5f, 1.25f, 1);
-					h.colorOffset = new Vector4(0.5f, -0.25f, -0.25f, 0.5f);
-				}
-
-				nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
-				m_lastRangedNeighbourhood = rangedNeighbourhood;
-				m_lastRefHex = nextHex;
-
-			}
-
-		}
-
-		public void MouseLeftUpdate(GameTime gameTime)
-		{
-			
-			bool clicked = m_mCurState.LeftButton == ButtonState.Released
-						&& m_mLastState.LeftButton == ButtonState.Pressed
-						&& m_leftButtonHoldTimer < m_clickInterval;
-			bool holding = m_mCurState.LeftButton == ButtonState.Pressed
-						&& m_mLastState.LeftButton == ButtonState.Pressed
-						&& m_leftButtonHoldTimer > m_clickInterval;
-
-
-			if (m_mCurState.LeftButton == ButtonState.Released)
-				m_leftButtonHoldTimer = 0;	
-			else
-				m_leftButtonHoldTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
-
-			if (clicked)
-			{
-				OnLeftMouseClick(gameTime);
-				clicked = false;
-			}
-			
-		}
-
-
-		public void OnLeftMouseClick(GameTime gameTime)
-		{
-			foreach ( Unit u in atGame.ActivePlayer.ownedUnits )
-			{
-				if ( u.IsUnderCursor(m_mCurState) )		{
-					u.Select();
-				}
-			}
-			atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
-			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
-
-		}
-
-		public void OnLeftMousePressed(GameTime gameTime)
-		{
-
-		}
-		public void OnLeftMouseReleased(GameTime gameTime)
-		{
-
-		}
-
-
 		private void KeyboardUpdate(GameTime gameTime)
 		{
+			//DebugModeKeyboardInput(gameTime);
+
+			//panning camera
+			if (m_kbCurState.IsKeyDown(Keys.Left))
+			{
+				atGame.Panning.X -= m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Right))
+			{
+				atGame.Panning.X += m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Up))
+			{
+				atGame.Panning.Y -= m_panningStep;
+			}
+			if (m_kbCurState.IsKeyDown(Keys.Down))
+			{
+				atGame.Panning.Y += m_panningStep;
+			}
+			PhaseKeyboardInput(gameTime);
+			
+		}
+
+		private void DebugModeKeyboardInput(GameTime gameTime)
+		{
+
 			//options debug: edition de types de tiles
 			if (m_kbCurState.IsKeyDown(Keys.F1))
 			{
@@ -198,20 +135,29 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F5))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Heavy test = new Heavy(atGame,atGame.ActivePlayer);
-				test.PutOnHex(hex);
+				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.PutOnHex(hex);
+				else
+					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F6))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Scout test = new Scout(atGame, atGame.ActivePlayer);
-				test.PutOnHex(hex);
+				Scout unit = new Scout(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.PutOnHex(hex);
+				else
+					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F7))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Sniper test = new Sniper(atGame, atGame.ActivePlayer);
-				test.PutOnHex(hex);
+				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.PutOnHex(hex);
+				else
+					unit.Dispose();
 			}
 
 			//options debug: cycling de couleurs de team
@@ -228,18 +174,18 @@ namespace WarGame
 					case 2: atGame.ActivePlayer.TeamColor = TeamColors.Blue; break;
 					default: atGame.ActivePlayer.TeamColor = Color.White; break;
 				}
-				
+
 				//atGame.activePlayer.teamColor.
 			}
 
 			//options debug: test de selection de group par nombre (propagation d'une source)
 			if (m_kbCurState.IsKeyDown(Keys.D) && m_kbLastState.IsKeyUp(Keys.D))
 			{
-				HashSet<HexTile> dispatchArea= new HashSet<HexTile>();
+				HashSet<HexTile> dispatchArea = new HashSet<HexTile>();
 				atGame.GameBoard.GetNeighbourGroup(
 					atGame.GameBoard.GetHexAtCoordinates(m_mPosition),
 					dispatchArea, 10);
-		
+
 			}
 
 
@@ -249,22 +195,40 @@ namespace WarGame
 				atGame.SwapPlayerTurns();
 			}
 
-			//panning camera
-			if (m_kbCurState.IsKeyDown(Keys.Left))
+		}
+
+		private void DispatchKeyboardInput(GameTime gameTime)
+		{
+			if (m_kbCurState.IsKeyDown(Keys.F5) && m_kbLastState.IsKeyUp(Keys.F5)
+				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Heavy) < 3)
 			{
-				atGame.Panning.X -= m_panningStep;
+				Console.WriteLine(atGame.ActivePlayer.ownedUnits.Count);
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.DispatchOnHex(hex);
+				else
+					unit.Dispose();
 			}
-			if (m_kbCurState.IsKeyDown(Keys.Right))
+			if (m_kbCurState.IsKeyDown(Keys.F6) && m_kbLastState.IsKeyUp(Keys.F6)
+				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Scout) < 3)
 			{
-				atGame.Panning.X += m_panningStep;
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Scout unit = new Scout(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.DispatchOnHex(hex);
+				else
+					unit.Dispose();
 			}
-			if (m_kbCurState.IsKeyDown(Keys.Up))
+			if (m_kbCurState.IsKeyDown(Keys.F7) && m_kbLastState.IsKeyUp(Keys.F7)
+				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Sniper) < 3)
 			{
-				atGame.Panning.Y -= m_panningStep;
-			}
-			if (m_kbCurState.IsKeyDown(Keys.Down))
-			{
-				atGame.Panning.Y += m_panningStep;
+				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);
+				if (unit.DispatchableOnHex(hex))
+					unit.DispatchOnHex(hex);
+				else
+					unit.Dispose();
 			}
 		}
 	}

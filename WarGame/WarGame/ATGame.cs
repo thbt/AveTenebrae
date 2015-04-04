@@ -117,7 +117,7 @@ namespace WarGame {
 		protected override void Draw(GameTime gameTime) {
 
 			spriteBatch.Begin();
-			GraphicsDevice.Clear(Color.CornflowerBlue);
+			GraphicsDevice.Clear(Color.MidnightBlue);
 			
 			// TODO: Add your drawing code here
 
@@ -162,6 +162,28 @@ namespace WarGame {
 					GameBoard.tileMap[y, GameBoard.ColumnCount-x].SetDispatchable(false, true);
 				}
 			}
+
+			m_currentPhaseLogic+=DispatchPhase;
+		}
+
+		public void DispatchPhase(GameTime gameTime)
+		{
+			int unitsPerTeam=9;
+			bool readyA = (this.PlayerA.ownedUnits.Count >= unitsPerTeam);
+			bool readyB = (this.PlayerB.ownedUnits.Count >= unitsPerTeam);
+
+			if (ActivePlayer==PlayerA && readyA)
+			{
+				Console.WriteLine("Swapping players");
+				SwapPlayerTurns();
+			}
+
+			if (readyA && readyB)
+			{
+				Console.WriteLine("Dispatch phase finished");
+				m_currentPhaseLogic -= DispatchPhase;
+			}
+
 		}
 	}
 }

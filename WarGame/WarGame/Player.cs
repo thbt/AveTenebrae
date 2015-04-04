@@ -49,12 +49,14 @@ namespace WarGame
 		{
 			// TODO: Construct any child components here
 			ownedUnits = new List<Unit>();
+			
 			/*selHexCursor = new HexCursor(game);
 
 			List<Color> colorBlk = new List<Color>();
 			colorBlk.Add(this.TeamColor);
 			colorBlk.Add(Color.White);
 			selHexCursor.SetColorBlink(colorBlk, 3f, true, false, true);*/
+			
 				
 		}
 

@@ -21,6 +21,7 @@ namespace WarGame
 		protected Texture2D coloredSpriteSheet;
 		protected static string spriteSheet_path;
 
+		protected string unitClass;
 		protected int iconSize = 64;
 		        
 		protected Rectangle drawArea;
@@ -62,7 +63,7 @@ namespace WarGame
 			Range=range;
 			RangedStrength=rangedStr;
 			Owner = owner;
-			Owner.ownedUnits.Add(this);
+			
 			
 
             
@@ -78,7 +79,7 @@ namespace WarGame
 			// TODO: Add your initialization code here
 			
 			base.Initialize();
-			
+			unitClass = this.GetType().Name;
 		}
 
 		protected override void LoadContent()
@@ -143,6 +144,19 @@ namespace WarGame
 			this.Visible = true;
 		}
 
+		public bool DispatchableOnHex(HexTile hex)
+		{
+			return (( hex.Status & atGame.ActivePlayer.DispatchableHex ) == atGame.ActivePlayer.DispatchableHex
+				&& hex.Occupant == null );
+		}
+
+		public void DispatchOnHex(HexTile hex)
+		{
+			PutOnHex(hex);
+			Owner.ownedUnits.Add(this);
+			Console.WriteLine(unitClass+" Spawned");
+		}
+
 		public override void Draw(GameTime gameTime)
 		{
 			
@@ -150,12 +164,9 @@ namespace WarGame
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 			&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
-
                 finalColor = Color.White;
 
-				this.spriteBatch.Begin();
-
-                
+				this.spriteBatch.Begin();                
                 base.DrawFX(gameTime);
 
 				//hex
@@ -166,9 +177,6 @@ namespace WarGame
 			}
 			
 		}
-
-
- 
 
 		public void PaletteSwap(Color targetColor)
 		{
@@ -218,7 +226,7 @@ namespace WarGame
 	{
 		public Heavy(ATGame game, Player owner) : base(game, owner, 2, 2, 1, 0) {
 			drawArea = new Rectangle(0, 0, iconSize, iconSize);
-			Console.WriteLine("Infantry Spawned");
+			
 		}
 
 		protected override void LoadContent()
