@@ -157,6 +157,14 @@ namespace WarGame
 			Console.WriteLine(unitClass+" Spawned");
 		}
 
+		public bool MoveTo(HexTile tileDest){
+			return MoveTo(tileDest.SpritePosition);
+		}
+		public bool MoveTo(Vector2 dest)
+		{
+			return true;
+		}
+
 		public override void Draw(GameTime gameTime)
 		{
 			
