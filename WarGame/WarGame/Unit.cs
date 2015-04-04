@@ -23,6 +23,7 @@ namespace WarGame
 
 		protected string unitClass;
 		protected int iconSize = 64;
+		protected static float moveSpeed = 5f;
 		        
 		protected Rectangle drawArea;
 		public Vector4 colorOffset = Vector4.Zero;
@@ -34,6 +35,9 @@ namespace WarGame
 		public int Width { get { return drawArea.Width; } }
 		public int Height { get { return drawArea.Height; } }
 		public Vector2 SpritePosition { get { return sprOrigin+atGame.Panning;} }
+
+		protected Vector2 nextDest;
+		protected HexTile nextDestTile;
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		
         public Player Owner { get; protected set; }
@@ -45,12 +49,15 @@ namespace WarGame
 		public readonly int Range;
 		public readonly int RangedStrength;
 
+		protected delegate void ExecuteActionsDlg(GameTime gameTime);
+		protected ExecuteActionsDlg ExecuteActions;
+
 		public Unit(ATGame game)
 			: base((Game)game)
 		{
 			// TODO: Construct any child components here
 			atGame.Components.Add(this);
-			
+			ExecuteActions += delegate(GameTime gameTime) { };
 
 		}
 
@@ -64,9 +71,6 @@ namespace WarGame
 			RangedStrength=rangedStr;
 			Owner = owner;
 			
-			
-
-            
 			// TODO: Construct any child components here
 		}
 
@@ -101,6 +105,7 @@ namespace WarGame
 
 			//PaletteSwap(atGame.activePlayer.TeamColor);
 			//base.Update(gameTime);
+			ExecuteActions(gameTime);
 			
 		}
 				
@@ -157,12 +162,52 @@ namespace WarGame
 			Console.WriteLine(unitClass+" Spawned");
 		}
 
-		public bool MoveTo(HexTile tileDest){
-			return MoveTo(tileDest.SpritePosition);
-		}
-		public bool MoveTo(Vector2 dest)
+
+		public void MoveTo(GameTime gameTime)
 		{
-			return true;
+			//(float)gameTime.ElapsedGameTime.TotalSeconds * moveSpeed
+			//float remDist = Vector2.Distance(nextDest, sprOrigin - atGame.Panning) / Vector2.Distance(OccupiedHex.SpritePosition, sprOrigin - atGame.Panning);
+			//
+			nextDest = nextDestTile.SpritePosition;
+			float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, nextDest);
+			
+			sprOrigin += (nextDest - OccupiedHex.SpritePosition) * moveSpeed / totalDist;
+
+			//sprOrigin = Vector2.SmoothStep(SpritePosition, nextDest, Vector2.Distance(SpritePosition, nextDest)/totalDist);
+
+			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
+			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
+			{
+				PutOnHex(nextDestTile);
+				ExecuteActions -= MoveTo;
+
+				BounceEnable = false;
+				Console.WriteLine(unitClass + " arrived at " + nextDest);
+			}
+				
+		}
+		/*public void StartMoveTo(Vector2 dest)
+		{
+			if (Vector2.Distance(SpritePosition,OccupiedHex.SpritePosition) <= 1)
+			{
+				nextDest = dest;
+				ExecuteActions += MoveTo;
+			}
+
+			Console.WriteLine(unitClass + " starts moving to "+dest);
+		}*/
+		public void StartMoveTo(HexTile tileDest)
+		{
+			if (Vector2.Distance(SpritePosition, OccupiedHex.SpritePosition) <= 1)
+			{
+				float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, tileDest.SpritePosition);
+				float expectedDuration = totalDist/moveSpeed;
+
+				nextDestTile = tileDest;
+				ExecuteActions += MoveTo;
+				SetBounce(12, -1, expectedDuration/100, false, true);
+			}
+		
 		}
 
 		public override void Draw(GameTime gameTime)

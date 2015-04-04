@@ -22,11 +22,13 @@ namespace WarGame
 		//timestamp du dernier debut de click
 		private double m_leftButtonHoldTimer = 0;
 		private double m_middleButtonHoldTimer = 0;
+		private double m_rightButtonHoldTimer = 0;
 		//temps en ms avant que le click soit considéré comme maintenu
 		private double m_clickInterval = 150;
 
 		private Vector2 m_mPosition;
 		private MouseState m_mCurState, m_mLastState;
+		
 
 			
 		/// <summary>
@@ -40,8 +42,10 @@ namespace WarGame
 			MouseHover(gameTime);
 			MouseLeftUpdate(gameTime);
 			MouseMiddleUpdate(gameTime);
+			MouseRightUpdate(gameTime);
 
 		}
+
 		private void MouseHover(GameTime gameTime)
 		{
 			//verifie si la souris est sortie du dernier hex
@@ -103,13 +107,18 @@ namespace WarGame
 
 		public void OnLeftMouseClick(GameTime gameTime)
 		{
-			foreach ( Unit u in atGame.ActivePlayer.ownedUnits )
+						
 			{
-				if ( u.IsUnderCursor(m_mCurState) )		{
-					u.Select();
+				foreach (Unit u in atGame.ActivePlayer.ownedUnits)
+				{
+					if (u.IsUnderCursor(m_mCurState))
+					{
+						u.Select();
+					}
 				}
+				atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
 			}
-			atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
+
 			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
 
 		}
@@ -159,6 +168,42 @@ namespace WarGame
 		private void OnMiddleMouseClick(GameTime gameTime)
 		{
 			//throw new NotImplementedException();
+		}
+
+		public void MouseRightUpdate(GameTime gameTime)
+		{
+
+			bool clicked = m_mCurState.RightButton == ButtonState.Released
+						&& m_mLastState.RightButton == ButtonState.Pressed
+						&& m_rightButtonHoldTimer < m_clickInterval;
+			bool holding = m_mCurState.RightButton == ButtonState.Pressed
+						&& m_mLastState.RightButton == ButtonState.Pressed
+						&& m_rightButtonHoldTimer > m_clickInterval;
+
+
+			if (m_mCurState.RightButton == ButtonState.Released)
+				m_rightButtonHoldTimer = 0;
+			else
+				m_rightButtonHoldTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+
+			if (clicked)
+			{
+				OnRightMouseClick(gameTime);
+				clicked = false;
+			}
+
+		}
+
+		private void OnRightMouseClick(GameTime gameTime)
+		{
+			if (atGame.ActivePlayer.selUnit != null)
+			{
+				HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				if (destTile.Occupant == null)
+				{
+					atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+				}
+			}
 		}
 
 	}
