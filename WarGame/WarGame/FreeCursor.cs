@@ -15,14 +15,10 @@ namespace WarGame
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	public class Cursor : ATDrawableComponent
+	public class FreeCursor : BaseCursor
 	{
 
-		public Vector2 position;
-
-		public Texture2D sprCurrent;
-		private Texture2D sprStandard;
-		public Cursor(ATGame game)
+		public FreeCursor(ATGame game)
 			: base(game)
 		{
 			// TODO: Construct any child components here
@@ -69,6 +65,7 @@ namespace WarGame
 		{
 			spriteBatch.Begin();
 			this.spriteBatch.Draw(sprCurrent, position, Color.White);
+
 
 			spriteBatch.End();
 			base.Draw(gameTime);

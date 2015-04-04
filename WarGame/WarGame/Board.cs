@@ -217,29 +217,21 @@ namespace WarGame {
 						{
 
 
-							sub.DisplayStatus = HexTile.HexDisplayStatus.HexDS_Dispatchable;
+							sub.Status = HexTile.HexStatus.HexDS_DispatchableA;
 							hexGroup.Add(sub);
-							if ((sub.DisplayStatus & HexTile.HexDisplayStatus.HexDS_Dispatchable)
-								!= HexTile.HexDisplayStatus.HexDS_Dispatchable)
+							if ((sub.Status & HexTile.HexStatus.HexDS_DispatchableA)
+								!= HexTile.HexStatus.HexDS_DispatchableA)
 							{
 								hexGroup.Union<HexTile>(farNeighbours);
 								GetNeighbourGroup(sub, hexGroup, count);		
 							}
 
-
-
-							
-							
-							
-							
-
 						}
 
-					
 
 				}
 				hexGroup.Add(source);
-				source.DisplayStatus = HexTile.HexDisplayStatus.HexDS_Dispatchable;
+				source.Status = HexTile.HexStatus.HexDS_DispatchableA;
 	
 			
 			}

@@ -78,7 +78,10 @@
   <ItemGroup>
     <Compile Include="AStar.cs" />
     <Compile Include="ATBaseComponent.cs" />
-    <Compile Include="Cursor.cs" />
+    <Compile Include="FreeCursor.cs" />
+    <Compile Include="BaseCursor.cs" />
+    <Compile Include="HexCursor.cs" />
+    <Compile Include="Partial\ATDrawableComponentFX.cs" />
     <Compile Include="HexTile.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="InputManager.cs" />

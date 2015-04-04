@@ -19,11 +19,16 @@ namespace WarGame
 	{
 		
 		public Unit selUnit;
-		public HexTile selHex;		
+		private HexTile m_selHex;
+		public HexTile SelectedHex { get { return m_selHex; } set { m_selHex = value;  } }
+
+		public HexCursor selHexCursor;
 
 		public Texture2D sprHexSelect;
 
 		public List<Unit> ownedUnits;
+
+		public HexTile.HexStatus DispatchableHex;
 
 		private Color m_teamColor;
 		public Color TeamColor
@@ -40,19 +45,33 @@ namespace WarGame
 		}
 
 		public Player(ATGame game)
-			: this(game, Color.White)
+			: this(game, Color.White, true)
 		{
 			// TODO: Construct any child components here
 			ownedUnits = new List<Unit>();
-	
+			/*selHexCursor = new HexCursor(game);
+
+			List<Color> colorBlk = new List<Color>();
+			colorBlk.Add(this.TeamColor);
+			colorBlk.Add(Color.White);
+			selHexCursor.SetColorBlink(colorBlk, 3f, true, false, true);*/
+				
 		}
 
-		public Player(ATGame game,Color teamColor)
+		public Player(ATGame game,Color teamColor, bool makePlayerA=true)
 			: base(game)
 		{
 			// TODO: Construct any child components here
 			ownedUnits = new List<Unit>();
 			TeamColor = teamColor;
+
+			if (makePlayerA)
+			{
+				this.DispatchableHex = HexTile.HexStatus.HexDS_DispatchableA;
+			}
+			else{
+				this.DispatchableHex = HexTile.HexStatus.HexDS_DispatchableB;
+			}
 
 		}
 

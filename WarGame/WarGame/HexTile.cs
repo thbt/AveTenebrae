@@ -9,24 +9,29 @@ using Microsoft.Xna.Framework.Graphics;
 namespace WarGame {
 	public class HexTile : ATDrawableComponent, ISelectable {
 
-		public HexDisplayStatus DisplayStatus { get; set; }
-		public enum HexDisplayStatus {
+		public HexStatus Status { get; set; }
+		public enum HexStatus {
 			HexDS_Normal=1,
-			HexDS_Dispatchable=2 };		
+			HexDS_DispatchableA=2,
+			HexDS_DispatchableB=4,
+			HexDS_VisibleA = 8,
+			HexDS_VisibleB = 16,
+		};		
 
-		protected Texture2D selectSpr;
+		
 		protected Texture2D mainSpr;
-		private Color baseColor;
+		protected Texture2D selectSpr;
+		public Color BaseColor { get; protected set; }
 
 		public Vector4 colorOffset=Vector4.Zero;
 		public Vector4 colorMultiplier=Vector4.One;
 
 		protected Vector2 sprOrigin = Vector2.Zero;
-		protected Vector2 sprOffset=Vector2.Zero;
+
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
-		public Vector2 SpritePosition { get { return sprOrigin+sprOffset;} }
+		public Vector2 SpritePosition { get { return sprOrigin + atGame.Panning; } }
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		public int Width { get { return mainSpr.Width; } }
 		public int Height { get { return mainSpr.Height; } }
@@ -45,10 +50,12 @@ namespace WarGame {
 		protected HexTile(ATGame game, int x, int y)
 			: base(game) {
 
-			DisplayStatus = HexDisplayStatus.HexDS_Normal;
+			Status = HexStatus.HexDS_Normal;
 			GridPosition = new Point(x, y);
 			Occupant = null;	
-			baseColor = this.Walkable ? Color.Green : Color.Brown;
+			BaseColor = this.Walkable ? Color.Green : Color.Brown;
+
+			
 		}
 
 		public static HexTile CreatePlain(ATGame game, int x, int y)
@@ -66,7 +73,7 @@ namespace WarGame {
 			atkBonus = 0;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			baseColor = Color.SandyBrown;
+			BaseColor = Color.SandyBrown;
 			return this;
 		}
 		public static HexTile CreateHill(ATGame game, int x, int y)
@@ -84,7 +91,7 @@ namespace WarGame {
 			atkBonus = 2;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			baseColor = Color.MediumSeaGreen;
+			BaseColor = Color.MediumSeaGreen;
 			return this;
 		}
 		public static HexTile CreateForest(ATGame game, int x, int y)
@@ -101,7 +108,7 @@ namespace WarGame {
 			atkBonus = 0;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			baseColor = Color.DarkGreen;
+			BaseColor = Color.DarkGreen;
 			return this;
 		}
 
@@ -123,68 +130,94 @@ namespace WarGame {
 		public override void Update(GameTime gameTime) {
 
 			sprOffset = atGame.Panning;
-			base.Update(gameTime);
+			//base.Update(gameTime);
 		}
 
 		public override void Draw(GameTime gameTime) {
 
+			
+			//il faut continuer à calculer certains effets, sinon ils sont désynchro lorsqu'ils reviennent dans la portion affichable
+			finalColor = new Color(BaseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+			base.DrawFX(gameTime);
+
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
-				
-				finalColor = new Color(baseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
-
-				if ((DisplayStatus & HexDisplayStatus.HexDS_Dispatchable) == HexDisplayStatus.HexDS_Dispatchable)
-				{
-					//colorMultiplier = new Vector4(0.25f, 0.25f, 0.25f, 1);
-					DrawColorBlink(gameTime);
-				}
-
-				if (DrawFX != null)
-					base.DrawFX(gameTime);
-
 				this.spriteBatch.Begin();
 				//hex
 				this.spriteBatch.Draw(mainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
 
 				//hex selectionné? si oui, le marquer
-				if (atGame.ActivePlayer.selHex == this)
-					this.spriteBatch.Draw(selectSpr, new Vector2(SpritePosition.X, SpritePosition.Y), new Color(baseColor.ToVector4() *1.975f));
-
-
+				if (atGame.ActivePlayer.SelectedHex == this)
+				{
+					this.spriteBatch.Draw(
+						selectSpr,
+						new Vector2(SpritePosition.X, SpritePosition.Y),
+						new Color(atGame.ActivePlayer.TeamColor.ToVector4() * 1.975f));
+				}
+					
 				//texte coords
-				/*this.spriteBatch.DrawString(
+				this.spriteBatch.DrawString(
 					ResourceManager.font,
 					GridPosition.X + "," + GridPosition.Y,
 					//(SpritePosition+SpriteCenter)*0.5f,
 					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Width / 3f),
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
-					Color.Black);*/
+					Color.Black);
 
-
-
-				this.spriteBatch.End();
 				//base.Draw(gameTime);
+				this.spriteBatch.End();
 			}
 
+			
 		}
 		public void Select()
 		{
-			atGame.ActivePlayer.selHex = this;
-			if (atGame.ActivePlayer.selHex.Occupant != null && atGame.ActivePlayer.selHex.Occupant.Owner == atGame.ActivePlayer)
+
+			atGame.ActivePlayer.SelectedHex = this;
+
+			if (atGame.ActivePlayer.SelectedHex.Occupant != null && atGame.ActivePlayer.SelectedHex.Occupant.Owner == atGame.ActivePlayer)
 			{
-				atGame.ActivePlayer.selHex.Occupant.Select();
+				atGame.ActivePlayer.SelectedHex.Occupant.Select();
 			}
 		}
 		public void UnSelect()
 		{
-			atGame.ActivePlayer.selHex = null;
+			atGame.ActivePlayer.SelectedHex = null;
+		}
+
+		public void SetDispatchable(bool teamA, bool teamB)
+		{
+			colorBlinkCycle = new List<Color>();
+
+			if (teamA){
+				Status |= HexStatus.HexDS_DispatchableA;
+				colorBlinkCycle.Add(atGame.PlayerA.TeamColor);
+				colorBlinkCycle.Add(new Color((this.BaseColor.ToVector4()*0.5f + atGame.PlayerA.TeamColor.ToVector4()*0.7f)));					
+			}				
+			else
+				Status &= ~HexStatus.HexDS_DispatchableA;
+
+			if (teamB){
+				Status |= HexStatus.HexDS_DispatchableB;				
+				colorBlinkCycle.Add(atGame.PlayerB.TeamColor);
+				colorBlinkCycle.Add(new Color((this.BaseColor.ToVector4() * 0.5f + atGame.PlayerB.TeamColor.ToVector4() * 0.7f)));
+			}				
+			else
+				Status &= ~HexStatus.HexDS_DispatchableB;
+
+			if ( teamA || teamB ){
+				colorBlinkDuration = 1.5f;
+				DrawFX += DrawColorBlink;
+			}				
+			else
+				DrawFX -= DrawColorBlink;
 		}
 
 
 		public List<HexTile> GetNeighbours(){
 
-			throw new NotImplementedException();
+			return atGame.GameBoard.GetNeighbours(this);
 		}
 
 

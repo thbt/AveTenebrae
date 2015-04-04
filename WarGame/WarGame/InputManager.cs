@@ -19,7 +19,7 @@ namespace WarGame
 	{
 		private int colorCycle=1; //pour tester les palettes de couleurs
 		
-		private Cursor m_cursor;
+		private FreeCursor m_cursor;
 		//timestamp du dernier debut de click
 		private double m_leftButtonHoldTimer = 0;
 		//temps en ms avant que le click soit considéré comme maintenu
@@ -58,7 +58,7 @@ namespace WarGame
 			m_kbLastState = m_kbCurState;
 
 			m_mPosition = Vector2.Zero;
-			m_cursor = new Cursor(atGame);
+			m_cursor = new FreeCursor(atGame);
 			base.Initialize();
 			m_tileList = atGame.GameBoard.GetTileList();
 			m_lastRefHex = m_tileList.ElementAt(m_tileList.Count/2+atGame.GameBoard.ColumnCount/2);
@@ -157,7 +157,7 @@ namespace WarGame
 			foreach ( Unit u in atGame.ActivePlayer.ownedUnits )
 			{
 				if ( u.IsUnderCursor(m_mCurState) )		{
-					
+					u.Select();
 				}
 			}
 			atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
@@ -198,7 +198,6 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F5))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				//if ( hex. )
 				Heavy test = new Heavy(atGame,atGame.ActivePlayer);
 				test.PutOnHex(hex);
 			}

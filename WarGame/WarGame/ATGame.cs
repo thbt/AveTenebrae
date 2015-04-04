@@ -33,6 +33,9 @@ namespace WarGame {
 
 		public Board GameBoard { get; protected set;}
 
+		private delegate void GamePhaseLogic(GameTime gameTime);
+		private GamePhaseLogic m_currentPhaseLogic;
+
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
 			ScreenWidth = 1280;
@@ -54,17 +57,22 @@ namespace WarGame {
 		/// </summary>
 		protected override void Initialize() {
 			// TODO: Add your initialization logic here
-			GameBoard = new Board(this);
+			Panning = Vector2.Zero;
+			GameBoard = new Board(this);			
 
-			PlayerA = new Player(this,TeamColors.Red);
-			PlayerB = new Player(this,TeamColors.Blue);
+			PlayerA = new Player(this,TeamColors.Red,true);
+			PlayerB = new Player(this,TeamColors.Blue,false);
 			ActivePlayer = PlayerA;
 			OpposingPlayer = PlayerB;
 
 			inputManager = new InputManager(this);
-			Panning = Vector2.Zero;
+			
 			spriteBatch = new SpriteBatch(GraphicsDevice);
+			m_currentPhaseLogic = delegate(GameTime GameTime){};
+
 			base.Initialize();
+
+			PrepareDispatchPhase();
 		}
 
 		/// <summary>
@@ -97,7 +105,8 @@ namespace WarGame {
 				this.Exit();
 
 			// TODO: Add your update logic here
-
+			
+			m_currentPhaseLogic(gameTime);
 			base.Update(gameTime);
 		}
 
@@ -120,8 +129,8 @@ namespace WarGame {
 		{
 			if (ActivePlayer.selUnit!=null)
 				ActivePlayer.selUnit.UnSelect();
-			if (ActivePlayer.selHex != null)
-				ActivePlayer.selHex.UnSelect();
+			if (ActivePlayer.SelectedHex != null)
+				ActivePlayer.SelectedHex.UnSelect();
 
 			Player oldActivePlayer = ActivePlayer;
 			ActivePlayer = OpposingPlayer;
@@ -129,10 +138,30 @@ namespace WarGame {
 		}
 
 
-		public void DispatchPhase()
+		public void PrepareDispatchPhase()
 		{
-			int unitsPerTeam = (int)Math.Sqrt(GameBoard.GetTileList().Count);
+			int unitsPerTeam = 9;
 			int dispatchSpotsPerTeam = unitsPerTeam * 2;
+			int dispatchColumns = 3;
+
+			//dispatch team A
+			for (int x = 0; x < dispatchColumns; x++)
+			{
+				for (int y = 0; y < GameBoard.RowCount; y++)
+				{
+					GameBoard.tileMap[y, x].SetDispatchable(true, false);
+				}
+			}
+
+
+			//dispatch team B
+			for (int x = dispatchColumns; x > 0; x--)
+			{
+				for (int y = 0; y < GameBoard.RowCount; y++)
+				{
+					GameBoard.tileMap[y, GameBoard.ColumnCount-x].SetDispatchable(false, true);
+				}
+			}
 		}
 	}
 }

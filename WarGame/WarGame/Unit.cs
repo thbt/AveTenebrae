@@ -32,7 +32,7 @@ namespace WarGame
 		protected Vector2 sprOffset = Vector2.Zero;
 		public int Width { get { return drawArea.Width; } }
 		public int Height { get { return drawArea.Height; } }
-		public Vector2 SpritePosition { get { return sprOrigin+sprOffset;} }
+		public Vector2 SpritePosition { get { return sprOrigin+atGame.Panning;} }
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		
         public Player Owner { get; protected set; }
@@ -56,12 +56,14 @@ namespace WarGame
 		public Unit(ATGame game, Player owner, int move, int str, int range, int rangedStr)
 			: this(game)
 		{
+			this.Visible = false;
 			Movement=move;
 			Strength=str;
 			Range=range;
 			RangedStrength=rangedStr;
 			Owner = owner;
 			Owner.ownedUnits.Add(this);
+			
 
             
 			// TODO: Construct any child components here
@@ -96,10 +98,8 @@ namespace WarGame
 		{
 			// TODO: Add your update code here
 
-            sprOffset = atGame.Panning;
-
 			//PaletteSwap(atGame.activePlayer.TeamColor);
-			base.Update(gameTime);
+			//base.Update(gameTime);
 			
 		}
 				
@@ -117,10 +117,12 @@ namespace WarGame
 		{
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
+			ColorBlinkEnable = false;
 		}
 
 		public void PutOnHex(HexTile hex)
 		{
+			sprOrigin = hex.SpritePosition-atGame.Panning;
 			//si deja placé ailleurs, liberer la case de départ
 			if (OccupiedHex != null)
 				OccupiedHex.Occupant = null;
@@ -133,11 +135,12 @@ namespace WarGame
 			}
 			else
 				hex.Occupant = this;
+
 			
-			sprOrigin = hex.SpritePosition;
 			this.PaletteSwap(Owner.TeamColor);
 			
 			this.OccupiedHex = hex;
+			this.Visible = true;
 		}
 
 		public override void Draw(GameTime gameTime)
@@ -152,11 +155,11 @@ namespace WarGame
 
 				this.spriteBatch.Begin();
 
-                if (DrawFX != null )
-                    base.DrawFX(gameTime);
+                
+                base.DrawFX(gameTime);
 
 				//hex
-				this.spriteBatch.Draw(coloredSpriteSheet, new Vector2(SpritePosition.X, SpritePosition.Y)+bounceOffset, drawArea, finalColor);
+				this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition+bounceOffset, drawArea, finalColor);
 
 				this.spriteBatch.End();
 				base.Draw(gameTime);
