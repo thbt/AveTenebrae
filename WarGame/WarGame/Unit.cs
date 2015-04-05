@@ -43,8 +43,11 @@ namespace WarGame
         public Player Owner { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
+		public List<HexTile> ReachableHexes {get; protected set;}
+		public bool VisibleToOpponent { get { return CheckVisibility(); } }
 
-		public readonly int Movement;
+		public int MovementPoints;
+		public readonly int Movement;		
 		public readonly int Strength;
 		public readonly int Range;
 		public readonly int RangedStrength;
@@ -61,6 +64,7 @@ namespace WarGame
 			{
 				DrawFX -= DrawFrozen;
 				PaletteSwap(Owner.TeamColor);
+				MovementPoints = Movement;
 			}
 			}
 		}
@@ -74,6 +78,7 @@ namespace WarGame
 			// TODO: Construct any child components here
 			atGame.Components.Add(this);
 			ExecuteActions += delegate(GameTime gameTime) { };
+			ReachableHexes = new List<HexTile>();
 
 		}
 
@@ -81,7 +86,8 @@ namespace WarGame
 			: this(game)
 		{
 			this.Visible = false;
-			Movement=move;
+			MovementPoints=move;
+			Movement = move;
 			Strength=str;
 			Range=range;
 			RangedStrength=rangedStr;
@@ -121,14 +127,19 @@ namespace WarGame
 
 			//PaletteSwap(atGame.activePlayer.TeamColor);
 			//base.Update(gameTime);
+
 			ExecuteActions(gameTime);
 			
 		}
 				
 		public void Select()
 		{
+
 			if (atGame.ActivePlayer.selUnit != null )
 				atGame.ActivePlayer.selUnit.UnSelect();
+
+			if (this == atGame.ActivePlayer.selUnit)
+				HighlightMovementRange();
 
 			atGame.ActivePlayer.selUnit = this;
 			SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
@@ -137,6 +148,15 @@ namespace WarGame
 
 		public void UnSelect()
 		{
+
+			HexTile.ResetGraphics(ReachableHexes);
+			List<HexTile> reachablePlaces = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
+			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+			
+			OccupiedHex.ResetGraphics();
+
+			colorOffset = Vector4.Zero;
+
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
 			ColorBlinkEnable = false;
@@ -184,6 +204,7 @@ namespace WarGame
 			//(float)gameTime.ElapsedGameTime.TotalSeconds * moveSpeed
 			//float remDist = Vector2.Distance(nextDest, sprOrigin - atGame.Panning) / Vector2.Distance(OccupiedHex.SpritePosition, sprOrigin - atGame.Panning);
 			//
+
 			nextDest = nextDestTile.SpritePosition;
 			float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, nextDest);
 			
@@ -194,24 +215,18 @@ namespace WarGame
 			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
 			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
 			{
+				OccupiedHex.ResetGraphics();
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
 				Freeze = true;
 				BounceEnable = false;
 				Console.WriteLine(unitClass + " arrived at " + nextDest);
+				HexTile.ResetGraphics(ReachableHexes);
+				OccupiedHex.ResetGraphics();
 			}
 				
 		}
-		/*public void StartMoveTo(Vector2 dest)
-		{
-			if (Vector2.Distance(SpritePosition,OccupiedHex.SpritePosition) <= 1)
-			{
-				nextDest = dest;
-				ExecuteActions += MoveTo;
-			}
 
-			Console.WriteLine(unitClass + " starts moving to "+dest);
-		}*/
 		public void StartMoveTo(HexTile tileDest)
 		{
 			if (Vector2.Distance(SpritePosition, OccupiedHex.SpritePosition) <= 1)
@@ -223,30 +238,36 @@ namespace WarGame
 				ExecuteActions += MoveTo;
 				
 				SetBounce(12, -1, expectedDuration/100, false, true);
+				
 			}
 		
 		}
 
-
+		
+		private bool CheckVisibility()
+		{
+ 			return ( Owner==atGame.ActivePlayer || ATGame.DEBUG_MODE );
+		}
 		public override void Draw(GameTime gameTime)
 		{
-			
-			//check si dans la partie visible
-			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
-			&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
-			{
-				finalColor = new Color(Color.White.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+			if (VisibleToOpponent)
+			{			
+				//check si dans la partie visible
+				if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
+				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
+				{
+					finalColor = new Color(Color.White.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
 
-				this.spriteBatch.Begin();                
-                base.DrawFX(gameTime);
+					this.spriteBatch.Begin();                
+					base.DrawFX(gameTime);
 
-				//hex
-				this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition+bounceOffset, drawArea, finalColor);
+					//hex
+					this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition+bounceOffset, drawArea, finalColor);
 
-				this.spriteBatch.End();
-				base.Draw(gameTime);
+					this.spriteBatch.End();
+					base.Draw(gameTime);
+				}
 			}
-			
 		}
 
 		public void DrawFrozen(GameTime gameTime)
@@ -255,6 +276,22 @@ namespace WarGame
 			Desaturate();
 			finalColor = new Color(grey * colorMultiplier + colorOffset * colorOffset.W);
 		}
+
+		public void HighlightMovementRange(bool highlight=true)
+		{
+
+				ReachableHexes = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
+				//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+
+				foreach (HexTile h in ReachableHexes)
+				{
+					h.SetHighlighted(highlight);
+				}
+
+				OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
+
+		}
+		
 
 		public void PaletteSwap(Color targetColor)
 		{
@@ -325,58 +362,23 @@ namespace WarGame
 			return (boundingBox.Contains(new Point(mouseState.X, mouseState.Y)));
 
 		}
-	}
 
-
-
-	public class Heavy : Unit
-	{
-		public Heavy(ATGame game, Player owner) : base(game, owner, 2, 2, 1, 0) {
-			drawArea = new Rectangle(0, 0, iconSize, iconSize);
-			
-		}
-
-		protected override void LoadContent()
+		public void ResetGraphics()
 		{
-			//spriteSheet_path = "icon_sheet";
-			base.LoadContent();
-			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
-
+			colorOffset = Vector4.Zero;
+			colorMultiplier = Vector4.One;
 		}
 
-
-	}
-
-	public class Scout : Unit
-	{
-		public Scout(ATGame game, Player owner) : base(game, owner, 4, 4, 1, 0) {
-			drawArea = new Rectangle(iconSize, 0, iconSize, iconSize);
-		}
-
-		protected override void LoadContent()
+		public static void ResetGraphics(List<Unit> resetList)
 		{
-			//spriteSheet_path = "units_cavalry";
-			base.LoadContent();
-			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
-
+			foreach (Unit u in resetList)
+				u.ResetGraphics();
 		}
+
 
 	}
 
-	public class Sniper : Unit
-	{
-		public Sniper(ATGame game, Player owner) : base(game, owner, 2, 1, 2, 4) {
-			drawArea = new Rectangle(iconSize*2, 0, iconSize, iconSize);
-		}
 
-		protected override void LoadContent()
-		{
-			//spriteSheet_path = "units_archer";
-			base.LoadContent();
-			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 
-		}
-
-	}
 
 }

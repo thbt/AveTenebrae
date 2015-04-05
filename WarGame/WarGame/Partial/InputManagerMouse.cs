@@ -53,27 +53,40 @@ namespace WarGame
 			//si oui, recherche du nouveau par detection du centre le plus proche du point (hypothenuse)
 			if (distFromCenter > atGame.GameBoard.HexPixelWidth / 2f)
 			{
-
-				foreach (HexTile h in m_lastRangedNeighbourhood)
-				{
-					h.colorMultiplier = Vector4.One;
-					h.colorOffset = Vector4.Zero;
-				}	
-				
-				//Console.WriteLine(distFromCenter);
 				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 5);
-				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+				nextHex.Highlight = true;
+				m_lastRefHex.Highlight = false;
 
-				foreach (HexTile h in rangedNeighbourhood)
+				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 				{
-					h.colorMultiplier = new Vector4(1.25f, 1.5f, 1.25f, 1);
-					h.colorOffset = new Vector4(0.5f, -0.25f, -0.25f, -0.5f);
-				}
+					foreach (HexTile h in m_lastRangedNeighbourhood)
+					{
+						h.SetHighlighted(false);
+					}
 
-				nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
-				m_lastRangedNeighbourhood = rangedNeighbourhood;
+					//Console.WriteLine(distFromCenter);
+
+					List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 5);
+					m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+
+					foreach (HexTile h in rangedNeighbourhood)
+					{
+						h.SetHighlighted(true);
+					}
+
+
+					nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
+					m_lastRangedNeighbourhood = rangedNeighbourhood;
+				}
+				
 				m_lastRefHex = nextHex;
+
+				/*nextHex.SetColorBlink(atGame.ActivePlayer.GetColorBlinkList(), 1f, false, true, true);
+
+				if ((m_lastRefHex.Status & ~HexTile.HexStatus.HexDS_Normal) ==  HexTile.HexStatus.HexDS_Normal)
+					m_lastRefHex.ColorBlinkEnable=false;*/
+
+
 
 			}
 
@@ -108,6 +121,7 @@ namespace WarGame
 		{
 						
 			{
+				
 				foreach (Unit u in atGame.ActivePlayer.ownedUnits)
 				{
 					if (u.IsUnderCursor(m_mCurState))
@@ -195,14 +209,30 @@ namespace WarGame
 
 		private void OnRightMouseClick(GameTime gameTime)
 		{
-			if (atGame.ActivePlayer.selUnit != null)
+			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 			{
-				HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				if (destTile.Occupant == null)
+				if (atGame.ActivePlayer.selUnit != null)
 				{
-					atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+					if (destTile.Occupant == null && atGame.ActivePlayer.selUnit.DispatchableOnHex(destTile))
+					{
+						atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+					}
 				}
 			}
+
+			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
+			{
+				if (atGame.ActivePlayer.selUnit != null)
+				{
+					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+					if (destTile.Occupant == null && atGame.ActivePlayer.selUnit.ReachableHexes.Contains(destTile))
+					{
+						atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+					}
+				}
+			}
+
 		}
 
 	}

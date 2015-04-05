@@ -17,9 +17,10 @@ namespace WarGame
 	/// </summary>
 	public partial class ATDrawableComponent : DrawableGameComponent
 	{
+		public Color BaseColor { get; protected set; }
 		//variables de clignotement alpha des sprites
 		private bool m_blinkEnable;
-		protected bool AlphaBlinkEnable
+		public bool AlphaBlinkEnable
 		{
 			get { return m_blinkEnable; }
 			set
@@ -41,7 +42,7 @@ namespace WarGame
 
 		//variables de clignotement coloré des sprites
 		private bool m_colorBlinkEnable;
-		protected bool ColorBlinkEnable
+		public bool ColorBlinkEnable
 		{
 			get { return m_colorBlinkEnable; }
 			set
@@ -71,7 +72,7 @@ namespace WarGame
 		//protected float blinkAlphaMax = 1.0f;
 		//protected float blinkAlpha = 0.75f;
 		protected Color colorBlinkCurrent = Color.White;
-		protected bool colorBlinkIgnoreAlpha = true;
+		protected bool colorBlinkIgnoreWhite = true;
 		protected bool colorBlinkLoop = true;
 		protected int colorCurrentIndex = 0;
 		protected float colorBlinkSign = 1f;
@@ -81,7 +82,7 @@ namespace WarGame
 
 		//variables de mouvement/flottement des sprites
 		private bool m_bounceEnable;
-		protected bool BounceEnable
+		public bool BounceEnable
 		{
 			get { return m_bounceEnable; }
 			set
@@ -168,13 +169,29 @@ namespace WarGame
 		/// <param name="colorCycle"></param>
 		/// <param name="cycleDuration"></param>
 		/// <param name="cycleLoopMode"></param>
-		public void SetColorBlink(List<Color> colorCycle, float cycleDuration, bool cycleLoopMode, bool ignoreAlpha, bool enable = false)
+		public void SetColorBlink(List<Color> colorCycle, float cycleDuration, bool cycleLoopMode, bool ignoreWhite, bool enable = false)
 		{
 			ColorBlinkEnable = enable;
-			colorBlinkIgnoreAlpha = ignoreAlpha;
+			colorBlinkIgnoreWhite = ignoreWhite;
 			colorBlinkLoop = cycleLoopMode;
 			if (colorCycle != null)
-				colorBlinkCycle = colorCycle;
+			{
+				if (ignoreWhite)
+				{
+					List<Color> whiteFiltered = new List<Color>();
+					foreach (Color c in colorCycle)
+					{
+						if (c.Equals(Color.White))
+							whiteFiltered.Add(this.BaseColor);
+						else
+							whiteFiltered.Add(c);
+					}
+					colorBlinkCycle = whiteFiltered;
+				}
+				else
+					colorBlinkCycle = colorCycle;
+			}
+				
 			blinkDuration = cycleDuration;
 		}
 
@@ -253,6 +270,8 @@ namespace WarGame
 			finalColor = new Color((finalColor.ToVector4() * 0.33f + mix * 0.67f));
 			finalColor.A = a;
 		}
+
+
 
 	}
 }

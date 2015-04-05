@@ -124,5 +124,13 @@ namespace WarGame
 			}
 			*/
 		}
+
+		public List<Color> GetColorBlinkList()
+		{
+			List<Color> colorCycle = new List<Color>();
+			colorCycle.Add(this.TeamColor);
+			colorCycle.Add(Color.White);
+			return colorCycle;
+		}
 	}
 }
