@@ -49,6 +49,22 @@ namespace WarGame
 		public readonly int Range;
 		public readonly int RangedStrength;
 
+		protected bool m_freeze = false;
+		public bool Freeze { get { return m_freeze; } 
+			set { m_freeze = value;
+			if (m_freeze)
+			{
+				AlphaBlinkEnable = false;
+				DrawFX += DrawFrozen;
+			}
+			else
+			{
+				DrawFX -= DrawFrozen;
+				PaletteSwap(Owner.TeamColor);
+			}
+			}
+		}
+
 		protected delegate void ExecuteActionsDlg(GameTime gameTime);
 		protected ExecuteActionsDlg ExecuteActions;
 
@@ -180,7 +196,7 @@ namespace WarGame
 			{
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
-
+				Freeze = true;
 				BounceEnable = false;
 				Console.WriteLine(unitClass + " arrived at " + nextDest);
 			}
@@ -205,10 +221,12 @@ namespace WarGame
 
 				nextDestTile = tileDest;
 				ExecuteActions += MoveTo;
+				
 				SetBounce(12, -1, expectedDuration/100, false, true);
 			}
 		
 		}
+
 
 		public override void Draw(GameTime gameTime)
 		{
@@ -217,7 +235,7 @@ namespace WarGame
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 			&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
 			{
-                finalColor = Color.White;
+				finalColor = new Color(Color.White.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
 
 				this.spriteBatch.Begin();                
                 base.DrawFX(gameTime);
@@ -229,6 +247,13 @@ namespace WarGame
 				base.Draw(gameTime);
 			}
 			
+		}
+
+		public void DrawFrozen(GameTime gameTime)
+		{
+			Vector4 grey = new Vector4(0.75f, 0.75f, 0.75f, 0.75f);
+			Desaturate();
+			finalColor = new Color(grey * colorMultiplier + colorOffset * colorOffset.W);
 		}
 
 		public void PaletteSwap(Color targetColor)
@@ -263,6 +288,35 @@ namespace WarGame
 
 			coloredSpriteSheet.SetData(pixels);
 			
+		}
+
+		public void Desaturate()
+		{
+
+			coloredSpriteSheet = new Texture2D(GraphicsDevice, spriteSheet.Width, spriteSheet.Height);
+			//Console.WriteLine(targetColor);
+
+			int nbPixels = spriteSheet.Width * spriteSheet.Height;
+			Color[] pixels = new Color[nbPixels];
+			spriteSheet.GetData(pixels);
+
+			for (int p = 0; p < nbPixels; p++)
+			{
+				Color pix = pixels[p];
+				byte a = pix.A;
+
+				float avg = ((pix.R + pix.G + pix.B) / 3f) / 255f;
+
+				pix.R = (byte)(avg * 255 );
+				pix.G = (byte)(avg * 255 );
+				pix.B = (byte)(avg * 255 );
+
+				pix.A = a;
+				pixels[p] = pix;
+			}
+
+			coloredSpriteSheet.SetData(pixels);
+
 		}
 
 		public bool IsUnderCursor(MouseState mouseState)

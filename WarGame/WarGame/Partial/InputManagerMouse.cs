@@ -62,14 +62,13 @@ namespace WarGame
 				
 				//Console.WriteLine(distFromCenter);
 				HexTile nextHex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 2);
+				List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 5);
 				m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-
 
 				foreach (HexTile h in rangedNeighbourhood)
 				{
 					h.colorMultiplier = new Vector4(1.25f, 1.5f, 1.25f, 1);
-					h.colorOffset = new Vector4(0.5f, -0.25f, -0.25f, 0.5f);
+					h.colorOffset = new Vector4(0.5f, -0.25f, -0.25f, -0.5f);
 				}
 
 				nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);

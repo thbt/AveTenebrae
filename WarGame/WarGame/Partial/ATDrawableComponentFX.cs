@@ -199,17 +199,6 @@ namespace WarGame
 			Vector4 next = colorBlinkCycle.ElementAt(nextIndex).ToVector4();
 			float timerStep = colorBlinkTimer / colorBlinkDuration;
 
-			/*
-			
-			float piPerStep = (float)Math.PI * step;
-			float sinPi = (float)Math.Sin(piPerStep);		
-			Vector4 previousWeighted = previous * Math.Abs((float)(sinPi));
-			Vector4 nextWeighted = next * Math.Abs((float)(sinPi));			
-
-			Vector4 mix = (previousWeighted + nextWeighted)/2f;
-			mix.W = (previousWeighted.W + nextWeighted.W) / 2f;
-			*/
-
 			Vector4 mix;
 			Vector4.SmoothStep(ref previous, ref next, timerStep, out mix);
 
@@ -237,6 +226,32 @@ namespace WarGame
 			bounceOffset.Y = (((float)Math.Sin(Math.PI * bounceTimer / bounceDuration) * bounceYmaxPixels) * bounceYSign);
 			
 
+		}
+		protected void DrawFadeToColor(GameTime gameTime)
+		{
+			colorBlinkTimer = (float)(colorBlinkTimer + gameTime.ElapsedGameTime.TotalSeconds);
+			int nextIndex = (colorCurrentIndex + 1) % colorBlinkCycle.Count;
+
+			if (colorBlinkTimer >= colorBlinkDuration)
+			{
+				colorBlinkTimer = 0;
+				colorCurrentIndex = nextIndex;
+				//if (BlinkEnable)
+				blinkSign = -blinkSign;
+			}
+
+			Vector4 previous = colorBlinkCycle.ElementAt(colorCurrentIndex).ToVector4();
+			Vector4 next = colorBlinkCycle.ElementAt(nextIndex).ToVector4();
+			float timerStep = colorBlinkTimer / colorBlinkDuration;
+
+			Vector4 mix;
+			Vector4.SmoothStep(ref previous, ref next, timerStep, out mix);
+
+			//Console.WriteLine(blinkAlpha);
+			byte a = finalColor.A;
+
+			finalColor = new Color((finalColor.ToVector4() * 0.33f + mix * 0.67f));
+			finalColor.A = a;
 		}
 
 	}
