@@ -48,6 +48,15 @@ namespace WarGame
 
 	public class Sniper : Unit
 	{
+		public override List<HexTile> AttackableHexes
+		{
+			get
+			{			
+				List<HexTile> meleeRange = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, 1, false);
+				meleeRange.AddRange(base.AttackableHexes);
+				return meleeRange;
+			}
+		}
 		public Sniper(ATGame game, Player owner)
 			: base(game, owner, 4, 1, 4, 4)
 		{

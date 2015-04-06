@@ -68,7 +68,9 @@ namespace WarGame
 				else
 				{
 					//finalColor = BaseColor;
-					DrawFX -= DrawColorBlink;					
+					if (DrawFX != null)
+						foreach (DrawDelegate d in DrawFX.GetInvocationList());
+							DrawFX -= DrawColorBlink;					
 				}
 					
 			}

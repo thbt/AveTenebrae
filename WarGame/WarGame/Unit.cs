@@ -43,9 +43,15 @@ namespace WarGame
         public Player Owner { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
-		public List<HexTile> ReachableHexes {get; protected set;}
-		public List<HexTile> AttackableHexes { get; protected set; }
+		public virtual List<HexTile> ReachableHexes	{
+			get { return atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.Movement, true); }
+		}
+		public virtual List<HexTile> AttackableHexes {
+			get{ return atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.Range, false);}
+		}
 		public bool VisibleToOpponent { get { return CheckVisibility(); } }
+
+		public HashSet<Unit> Attackers { get; protected set; }
 
 		public int MovementPoints;
 		public readonly int Movement;		
@@ -80,9 +86,10 @@ namespace WarGame
 		{
 			// TODO: Construct any child components here
 			atGame.Components.Add(this);
+			Attackers = new HashSet<Unit>();
 			ExecuteActions += delegate(GameTime gameTime) { };
-			ReachableHexes = new List<HexTile>();
-			AttackableHexes = new List<HexTile>();
+			//ReachableHexes = new List<HexTile>();
+			//AttackableHexes = new List<HexTile>();
 		}
 
 		public Unit(ATGame game, Player owner, int move, int str, int range, int rangedStr)
@@ -184,6 +191,51 @@ namespace WarGame
 			ResetRangeGraphics();
 		}
 
+		public bool TargetUnit(Unit target, bool mark)
+		{
+			if (target == null) return false;
+			//recliquer sur une cible unfreeze l'unité en cours
+			if (target.Attackers.Contains(this))
+			{	
+				Freeze = target.MarkTargetedBy(this, false);
+			}
+			else if (!Freeze)
+			{	
+				Freeze = target.MarkTargetedBy(this, true);
+			}
+			return target.Attackers.Contains(this);
+		}
+		/// <summary>
+		/// Marque l'unité comme (dé)ciblée et ajoute/retire cet attaquant dans sa liste de menaces
+		/// </summary>
+		/// <param name="attacker">Attaquant de la cible - Si null, retourne le nombre d'attaquants de cette cible</param>
+		/// <param name="mark">true: ajouter et marquer - false: retirer et décibler</param>
+		/// <returns>true si l'attaquant est dans la liste des menaces</returns>
+		public bool MarkTargetedBy(Unit attacker, bool mark)
+		{
+			
+			if (attacker == null ) return false;
+
+			if (attacker != null){
+				if ( mark){
+					if (attacker.AttackableHexes.Contains(this.OccupiedHex) && this.OccupiedHex.Occupant.Owner == atGame.OpposingPlayer)
+					{
+						Attackers.Add(attacker);
+						this.SetColorBlink(atGame.ActivePlayer.GetColorBlinkList(), 0.5f, true, false, true);
+					}
+											
+				}
+				else
+				{
+					ColorBlinkEnable = false;
+					Attackers.Remove(attacker);
+				}
+					
+			}
+
+			return Attackers.Contains(attacker);
+		}
+
 		public void PutOnHex(HexTile hex)
 		{
 			sprOrigin = hex.SpritePosition-atGame.Panning;
@@ -237,14 +289,15 @@ namespace WarGame
 			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
 			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
 			{
+				HexTile.ResetGraphics(ReachableHexes, true);
 				OccupiedHex.ResetGraphics(true);
+
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
 				Freeze = true;
 				BounceEnable = false;
 				Console.WriteLine(unitClass + " arrived at " + nextDest);
-				HexTile.ResetGraphics(ReachableHexes,true);
-				OccupiedHex.ResetGraphics();
+
 			}
 				
 		}
@@ -266,9 +319,10 @@ namespace WarGame
 		}
 
 		
+		
 		private bool CheckVisibility()
 		{
- 			return ( Owner==atGame.ActivePlayer || ATGame.DEBUG_MODE );
+ 			return ( true || Owner==atGame.ActivePlayer || ATGame.DEBUG_MODE );
 		}
 		public override void Draw(GameTime gameTime)
 		{
@@ -302,32 +356,32 @@ namespace WarGame
 		public void HighlightMovementRange(bool highlight=true)
 		{
 
-				ReachableHexes = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
-				//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-				ReachableHexes.Add(OccupiedHex);
-				foreach (HexTile h in ReachableHexes)
-				{
-					
-					h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
-					h.ResetGraphics(true);
-					h.TeamColorBlink(Owner);					
-					
-					h.colorMultiplier.W = 1f;
-					h.ColorBlinkEnable = true;
+			List<HexTile> mvt = ReachableHexes;
 
-					//h.SetHighlighted(highlight);
-				}
+			mvt.Add(OccupiedHex);
+			foreach (HexTile h in mvt)
+			{
+					
+				h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
+				h.ResetGraphics(true);
+				h.TeamColorBlink(Owner);					
+					
+				h.colorMultiplier.W = 1f;
+				h.ColorBlinkEnable = true;
 
-				OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
+				//h.SetHighlighted(highlight);
+			}
+
+			OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
 
 		}
 		public virtual void HighlightAttackRange(bool highlight = true)
 		{
-			
-			AttackableHexes = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.Range,false);
-			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-			AttackableHexes.Add(OccupiedHex);
-			foreach (HexTile h in AttackableHexes)
+
+			List<HexTile> atk = AttackableHexes;
+
+			atk.Add(OccupiedHex);
+			foreach (HexTile h in atk)
 			{
 				
 				h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
@@ -423,6 +477,8 @@ namespace WarGame
 		{
 			colorOffset = Vector4.Zero;
 			colorMultiplier = Vector4.One;
+			ColorBlinkEnable = false;
+
 		}
 
 		public static void ResetGraphics(List<Unit> resetList)

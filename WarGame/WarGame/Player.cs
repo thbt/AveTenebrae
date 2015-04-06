@@ -137,7 +137,12 @@ namespace WarGame
 		public void UnfreezeUnits()
 		{
 			foreach (Unit u in OwnedUnits)
+			{
 				u.Freeze = false;
+				u.ColorBlinkEnable = false;
+				u.ResetGraphics();
+			}
+				
 		}
 	}
 }

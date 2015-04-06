@@ -93,7 +93,7 @@ namespace WarGame {
 		public HexTile ChangeToHill()
 		{
 
-			BaseCost = 2;
+			BaseCost = 3;
 			defBonus = 0;
 			atkBonus = 2;
 			defMultiplier = 1;
@@ -115,7 +115,7 @@ namespace WarGame {
 
 		public HexTile ChangeToForest()
 		{	
-			BaseCost = 3;
+			BaseCost = 2;
 			defBonus = 0;
 			atkBonus = 0;
 			defMultiplier = 1;

@@ -211,30 +211,55 @@ namespace WarGame
 
 		private void OnRightMouseClick(GameTime gameTime)
 		{
+			Unit selUnit=atGame.ActivePlayer.SelectedUnit;
 			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 			{
-				if (atGame.ActivePlayer.SelectedUnit != null)
+				if (selUnit != null)
 				{
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-					if (destTile.Occupant == null && atGame.ActivePlayer.SelectedUnit.DispatchableOnHex(destTile))
+					if (destTile.Occupant == null && selUnit.DispatchableOnHex(destTile))
 					{
-						atGame.ActivePlayer.SelectedUnit.StartMoveTo(destTile);
+						selUnit.StartMoveTo(destTile);
 					}
 				}
 			}
 
 			else if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
 			{
-				if (atGame.ActivePlayer.SelectedUnit != null)
+				if (selUnit != null)
 				{
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-					if (destTile.Occupant == null && atGame.ActivePlayer.SelectedUnit.ReachableHexes.Contains(destTile))
+					if (destTile.Occupant == null && selUnit.ReachableHexes.Contains(destTile))
 					{
-						atGame.ActivePlayer.SelectedUnit.StartMoveTo(destTile);
+						selUnit.StartMoveTo(destTile);
 					}
 				}
 			}
 
+			else if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
+			{
+				HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+				if (selUnit != null)
+				{
+
+					if (destTile.Occupant != null )
+					{
+						bool alreadyAttacking=destTile.Occupant.Attackers.Contains(selUnit);
+						bool targetLockable = (!alreadyAttacking && !selUnit.Freeze);
+
+						if (selUnit.TargetUnit(destTile.Occupant, targetLockable))
+						{
+							Console.WriteLine("Target Locked");
+						}
+						else if (alreadyAttacking)
+							Console.WriteLine("Target Unlocked");
+						else
+							Console.WriteLine("Undefined state");
+					}
+					else
+						Console.WriteLine("Invalid or no target");
+				}
+			}
 		}
 
 	}

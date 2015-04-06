@@ -38,11 +38,11 @@ namespace WarGame {
 				{f,f,f,f,p,h,h,h,h,h,p,h,f},
                 {h,h,h,h,p,h,p,h,p,p,f,f,f},
             };*/
-			int[,] tmpMap = new int[20, 20];
+			int[,] tmpMap = new int[12, 12];
 			for (int y=0; y<tmpMap.GetLength(0); y++)
 				for (int x=0; x < tmpMap.GetLength(1); x++)
 				{
-					tmpMap[y, x] = ResourceManager.Random.Next(1, 4);
+					tmpMap[y, x] = (int)ResourceManager.Random.Next(2, 7)/2;
 				
 				}
 
@@ -192,6 +192,7 @@ namespace WarGame {
 			int stepCost = 1;
 			List<HexTile> neighbours = new List<HexTile>();
 			HashSet<HexTile> childrenNeighbours = new HashSet<HexTile>();
+
 			//selection avec prise en compte des couts de deplacement
 			if (useCosts)
 			{
@@ -207,11 +208,13 @@ namespace WarGame {
 				}
 			}
 			//selection par portée absolue: si portée supérieure à 0, va chercher les voisins lointains
+			
 			else
 			{
 				neighbours = GetNeighbours(source);
 				foreach (HexTile sub in neighbours)
 				{
+					
 					//if (sub.totalPathCost >= source.totalPathCost + stepCost || sub.totalPathCost == 0)
 					sub.totalPathCost = source.totalPathCost + stepCost;
 					if (range > stepCost)
