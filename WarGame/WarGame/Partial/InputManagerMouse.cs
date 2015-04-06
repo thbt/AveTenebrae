@@ -122,7 +122,7 @@ namespace WarGame
 						
 			{
 				
-				foreach (Unit u in atGame.ActivePlayer.ownedUnits)
+				foreach (Unit u in atGame.ActivePlayer.OwnedUnits)
 				{
 					if (u.IsUnderCursor(m_mCurState))
 					{
@@ -211,24 +211,24 @@ namespace WarGame
 		{
 			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 			{
-				if (atGame.ActivePlayer.selUnit != null)
+				if (atGame.ActivePlayer.SelectedUnit != null)
 				{
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-					if (destTile.Occupant == null && atGame.ActivePlayer.selUnit.DispatchableOnHex(destTile))
+					if (destTile.Occupant == null && atGame.ActivePlayer.SelectedUnit.DispatchableOnHex(destTile))
 					{
-						atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+						atGame.ActivePlayer.SelectedUnit.StartMoveTo(destTile);
 					}
 				}
 			}
 
-			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
+			else if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
 			{
-				if (atGame.ActivePlayer.selUnit != null)
+				if (atGame.ActivePlayer.SelectedUnit != null)
 				{
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-					if (destTile.Occupant == null && atGame.ActivePlayer.selUnit.ReachableHexes.Contains(destTile))
+					if (destTile.Occupant == null && atGame.ActivePlayer.SelectedUnit.ReachableHexes.Contains(destTile))
 					{
-						atGame.ActivePlayer.selUnit.StartMoveTo(destTile);
+						atGame.ActivePlayer.SelectedUnit.StartMoveTo(destTile);
 					}
 				}
 			}

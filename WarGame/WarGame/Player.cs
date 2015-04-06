@@ -17,8 +17,9 @@ namespace WarGame
 	/// </summary>
 	public class Player : ATDrawableComponent
 	{
+		public string Name = "PlayerName";
 		
-		public Unit selUnit;
+		public Unit SelectedUnit;
 		private HexTile m_selHex;
 		public HexTile SelectedHex { get { return m_selHex; } set { m_selHex = value;  } }
 
@@ -26,7 +27,7 @@ namespace WarGame
 
 		public Texture2D sprHexSelect;
 
-		public List<Unit> ownedUnits;
+		public List<Unit> OwnedUnits;
 
 		public HexTile.HexStatus DispatchableHex;
 
@@ -37,7 +38,7 @@ namespace WarGame
 			set
 			{
 				m_teamColor = value;
-				foreach (Unit u in ownedUnits)
+				foreach (Unit u in OwnedUnits)
 				{
 					u.PaletteSwap(m_teamColor);
 				}
@@ -48,7 +49,7 @@ namespace WarGame
 			: this(game, Color.White, true)
 		{
 			// TODO: Construct any child components here
-			ownedUnits = new List<Unit>();
+			OwnedUnits = new List<Unit>();
 			
 			/*selHexCursor = new HexCursor(game);
 
@@ -64,7 +65,7 @@ namespace WarGame
 			: base(game)
 		{
 			// TODO: Construct any child components here
-			ownedUnits = new List<Unit>();
+			OwnedUnits = new List<Unit>();
 			TeamColor = teamColor;
 
 			if (makePlayerA)
@@ -131,6 +132,12 @@ namespace WarGame
 			colorCycle.Add(this.TeamColor);
 			colorCycle.Add(Color.White);
 			return colorCycle;
+		}
+
+		public void UnfreezeUnits()
+		{
+			foreach (Unit u in OwnedUnits)
+				u.Freeze = false;
 		}
 	}
 }
