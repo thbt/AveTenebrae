@@ -21,9 +21,11 @@ namespace AStar
         //public int Value { get; protected set; }
 		protected int m_depth=0;
 		public int Depth { get { return m_depth; } protected set { m_depth = value; } }
-		private ASState m_parentState;
-		public ASState ParentState { get { return m_parentState; } set { 
-
+		protected ASState m_parentState;
+		public virtual ASState ParentState
+		{
+			get { return m_parentState; } 
+			set { 
 			m_parentState = value;
 			if ( value != null )
 				Depth = m_parentState.Depth + 1;
@@ -67,12 +69,12 @@ namespace AStar
         public enum SearchType { ST_1STFOUND };
 		public int DepthLimit=42;
 
-        SearchType stopCondition = SearchType.ST_1STFOUND;
-        AStarHeuristic m_ash;
-        ASState m_initialState;
+		protected SearchType stopCondition = SearchType.ST_1STFOUND;
+		protected AStarHeuristic m_ash;
+        protected ASState m_initialState;
         //private ASState m_wantedState;
 
-        List<ASState> m_OpenStates, m_ClosedStates;
+		protected List<ASState> m_OpenStates, m_ClosedStates;
 
 
         public AStarSolver(ASState initial, AStarHeuristic ash)

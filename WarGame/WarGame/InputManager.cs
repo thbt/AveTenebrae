@@ -88,7 +88,25 @@ namespace WarGame
 
 		private void KeyboardUpdate(GameTime gameTime)
 		{
-			//DebugModeKeyboardInput(gameTime);
+
+			//debug mode
+			if (m_kbCurState.IsKeyDown(Keys.LeftControl) || m_kbCurState.IsKeyDown(Keys.RightControl))
+			{
+				DebugModeKeyboardInput(gameTime);
+				ATGame.DEBUG_MODE = true;
+			}
+			else
+				ATGame.DEBUG_MODE = false;
+
+			//general
+			if (m_kbCurState.IsKeyDown(Keys.End))
+			{
+				//pour forcer la fin de tour d'une unité si aucun autre choix possible/avantageux
+				if (atGame.ActivePlayer.SelectedUnit != null)
+				{
+					atGame.ActivePlayer.SelectedUnit.Freeze=true;
+				}
+			}
 
 			//panning camera
 			if (m_kbCurState.IsKeyDown(Keys.Left))
@@ -108,6 +126,7 @@ namespace WarGame
 				atGame.Panning.Y += m_panningStep;
 			}
 			PhaseKeyboardInput(gameTime);
+
 			
 		}
 
@@ -136,7 +155,7 @@ namespace WarGame
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
-				if (unit.DispatchableOnHex(hex))
+				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
 					unit.Dispose();
@@ -145,7 +164,7 @@ namespace WarGame
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Scout unit = new Scout(atGame, atGame.ActivePlayer);
-				if (unit.DispatchableOnHex(hex))
+				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
 					unit.Dispose();
@@ -154,7 +173,7 @@ namespace WarGame
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);
-				if (unit.DispatchableOnHex(hex))
+				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
 					unit.Dispose();
@@ -178,6 +197,12 @@ namespace WarGame
 				//atGame.activePlayer.teamColor.
 			}
 
+			//options debug: force l'affichage d'un message de début de gamephase
+			if (m_kbCurState.IsKeyDown(Keys.B) && m_kbLastState.IsKeyUp(Keys.B))
+			{
+				atGame.Overlay.DisplayMessage(ScreenOverlay.BigMessages.Dispatch);
+			}
+
 			//options debug: test de selection de group par nombre (propagation d'une source)
 			if (m_kbCurState.IsKeyDown(Keys.D) && m_kbLastState.IsKeyUp(Keys.D))
 			{
@@ -199,10 +224,11 @@ namespace WarGame
 
 		private void DispatchKeyboardInput(GameTime gameTime)
 		{
+			
 			if (m_kbCurState.IsKeyDown(Keys.F5) && m_kbLastState.IsKeyUp(Keys.F5)
-				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Heavy) < 3)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Heavy) < atGame.nbHeavies)
 			{
-				Console.WriteLine(atGame.ActivePlayer.ownedUnits.Count);
+				Console.WriteLine(atGame.ActivePlayer.OwnedUnits.Count);
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
 				if (unit.DispatchableOnHex(hex))
@@ -211,7 +237,7 @@ namespace WarGame
 					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F6) && m_kbLastState.IsKeyUp(Keys.F6)
-				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Scout) < 3)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Scout) < atGame.nbScout)
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Scout unit = new Scout(atGame, atGame.ActivePlayer);
@@ -221,7 +247,7 @@ namespace WarGame
 					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F7) && m_kbLastState.IsKeyUp(Keys.F7)
-				&& atGame.ActivePlayer.ownedUnits.Count(u => u is Sniper) < 3)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Sniper) < atGame.nbSnipers)
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);

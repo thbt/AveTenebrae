@@ -16,18 +16,16 @@ namespace WarGame {
 			HexDS_DispatchableB=4,
 			HexDS_VisibleA = 8,
 			HexDS_VisibleB = 16,
-		};		
+		};
 
 		
 		protected Texture2D mainSpr;
-		protected Texture2D selectSpr;
-		public Color BaseColor { get; protected set; }
+		protected Texture2D selectSpr;		
 
 		public Vector4 colorOffset=Vector4.Zero;
 		public Vector4 colorMultiplier=Vector4.One;
 
 		protected Vector2 sprOrigin = Vector2.Zero;
-
 		
 		public HexTile Parent { get; protected set; }
 		public Point GridPosition { get; protected set;}
@@ -35,16 +33,19 @@ namespace WarGame {
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		public int Width { get { return mainSpr.Width; } }
 		public int Height { get { return mainSpr.Height; } }
-		public bool Walkable { get { return Cost < int.MaxValue; } }
+		public bool Walkable { get { return BaseCost < int.MaxValue && Occupant == null; } }
 
 		//gameStats
-		public int Cost { get; protected set; }
+		public int BaseCost { get; protected set; }
+		public int FinalCost { get { return (Walkable) ? BaseCost : int.MaxValue; } }
+		public int totalPathCost;
 		public int defBonus { get; protected set; }
 		public int atkBonus { get; protected set; }
 		public int defMultiplier { get; protected set; }
 		public int atkMultiplier { get; protected set; }
 
 		public Unit Occupant { get; set; }
+		public bool Highlight { get; set; }
 
 
 		protected HexTile(ATGame game, int x, int y)
@@ -68,7 +69,7 @@ namespace WarGame {
 		public HexTile ChangeToPlain()
 		{
 
-			Cost = 1;
+			BaseCost = 1;
 			defBonus = 0;
 			atkBonus = 0;
 			defMultiplier = 1;
@@ -86,7 +87,7 @@ namespace WarGame {
 		public HexTile ChangeToHill()
 		{
 
-			Cost = 2;
+			BaseCost = 2;
 			defBonus = 0;
 			atkBonus = 2;
 			defMultiplier = 1;
@@ -103,7 +104,7 @@ namespace WarGame {
 
 		public HexTile ChangeToForest()
 		{	
-			Cost = 2;
+			BaseCost = 3;
 			defBonus = 0;
 			atkBonus = 0;
 			defMultiplier = 1;
@@ -124,12 +125,13 @@ namespace WarGame {
 			sprOrigin = new Vector2(
 				GridPosition.X * Width * 0.75f,
 				GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
-			Console.WriteLine(SpritePosition);
+			Console.WriteLine(SpritePosition);			
 		}
 
 		public override void Update(GameTime gameTime) {
 
 			sprOffset = atGame.Panning;
+		
 			//base.Update(gameTime);
 		}
 
@@ -155,15 +157,30 @@ namespace WarGame {
 						new Vector2(SpritePosition.X, SpritePosition.Y),
 						new Color(atGame.ActivePlayer.TeamColor.ToVector4() * 1.975f));
 				}
-					
+				else if (Highlight)
+				{
+					this.spriteBatch.Draw(
+						selectSpr,
+						new Vector2(SpritePosition.X, SpritePosition.Y),
+						new Color(atGame.ActivePlayer.TeamColor.ToVector4() * 0.5f));
+				}
+									
 				//texte coords
-				this.spriteBatch.DrawString(
+				/*this.spriteBatch.DrawString(
 					ResourceManager.font,
 					GridPosition.X + "," + GridPosition.Y,
 					//(SpritePosition+SpriteCenter)*0.5f,
 					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Width / 3f),
-					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Width / 3f),
-					Color.Black);
+					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Height / 3f),
+					Color.Black);*/
+
+				this.spriteBatch.DrawString(
+					ResourceManager.font,
+					"C:"+this.BaseCost+"\nM:"+totalPathCost,
+									//(SpritePosition+SpriteCenter)*0.5f,
+					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Height / 3f),
+					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Height / 8f),
+					new Color(0,0,0,0.33f));
 
 				//base.Draw(gameTime);
 				this.spriteBatch.End();
@@ -184,6 +201,7 @@ namespace WarGame {
 		public void UnSelect()
 		{
 			atGame.ActivePlayer.SelectedHex = null;
+			this.ResetGraphics();
 		}
 
 		public void SetDispatchable(bool teamA, bool teamB)
@@ -192,16 +210,15 @@ namespace WarGame {
 
 			if (teamA){
 				Status |= HexStatus.HexDS_DispatchableA;
-				colorBlinkCycle.Add(atGame.PlayerA.TeamColor);
-				colorBlinkCycle.Add(new Color((this.BaseColor.ToVector4()*0.5f + atGame.PlayerA.TeamColor.ToVector4()*0.7f)));					
+				colorBlinkCycle = TeamColorBlink(atGame.PlayerA);				
 			}				
 			else
 				Status &= ~HexStatus.HexDS_DispatchableA;
 
 			if (teamB){
-				Status |= HexStatus.HexDS_DispatchableB;				
-				colorBlinkCycle.Add(atGame.PlayerB.TeamColor);
-				colorBlinkCycle.Add(new Color((this.BaseColor.ToVector4() * 0.5f + atGame.PlayerB.TeamColor.ToVector4() * 0.7f)));
+				Status |= HexStatus.HexDS_DispatchableB;
+				colorBlinkCycle = TeamColorBlink(atGame.PlayerB);
+
 			}				
 			else
 				Status &= ~HexStatus.HexDS_DispatchableB;
@@ -214,12 +231,61 @@ namespace WarGame {
 				DrawFX -= DrawColorBlink;
 		}
 
+		public void SetHighlighted(bool highLight)
+		{
+			if (highLight)
+			{
+				colorMultiplier = new Vector4(1.25f, 1.5f, 1.25f, 0.75f);
+				colorOffset = new Vector4(-0.5f, -0.25f, -0.25f, -0.5f);
+			}
+			else
+			{
+				colorMultiplier = Vector4.One;
+				colorOffset = Vector4.Zero;
+			}
+
+		}
+
+		public List<Color> TeamColorBlink(Player player)
+		{
+			this.ResetGraphics();
+			List<Color> cbl = new List<Color>();
+			cbl.Add(player.TeamColor);
+			cbl.Add(new Color((this.BaseColor.ToVector4() * 0.5f + player.TeamColor.ToVector4() * 0.7f)));
+			colorBlinkCycle = cbl;
+			colorBlinkTimer = 0;
+			colorBlinkDuration = 1f;
+			
+			return cbl;
+		}
+
+		public HexNode ToHexNode()
+		{
+			return new HexNode(this);
+		}
+
 
 		public List<HexTile> GetNeighbours(){
 
 			return atGame.GameBoard.GetNeighbours(this);
 		}
 
+		public void ResetGraphics()
+		{
+			colorOffset=Vector4.Zero;
+			colorMultiplier=Vector4.One;
+			ColorBlinkEnable = false;
+			AlphaBlinkEnable = false;
+			BounceEnable = false;
+			colorBlinkTimer = 0;
+			
+		}
+
+		public static void ResetGraphics(List<HexTile> resetList)
+		{
+			foreach (HexTile h in resetList)			
+				h.ResetGraphics();			
+		}
 
 	}
 

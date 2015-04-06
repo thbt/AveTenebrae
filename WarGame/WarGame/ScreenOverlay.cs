@@ -17,18 +17,25 @@ namespace WarGame
 	/// </summary>
 	public class ScreenOverlay : ATDrawableComponent
 	{
+		public enum BigMessages { Dispatch=1, Movement=2, Combat=3, GameOver=0 };
+		private BigMessages m_bigMessageType=BigMessages.Dispatch;
 		private SpriteFont m_bigFont;
 
-		private string m_dispatchMessage="Dispatch: {0}";
-		private string m_currentMessage="";
 
 		private Texture2D m_phaseMessageSprite;
+		
+		private Rectangle m_upperLine; 
+		private Rectangle m_lowerLine;
+
 		private Vector2 m_bigMessageOffset = Vector2.Zero;
 		private Vector2 m_bigMessageLineSize;
 		public float MessagePauseDuration = 1f;
 		public float MessageScrollDuration = 1f;
 		private float m_messageScrollTimer = 0f;
 		private float m_messagePauseTimer = 0f;
+		private float m_Xratio = 0f;
+		private float m_Yratio = 0f;
+
 		
 		private DrawDelegate DrawOverlayElement = delegate{ };
 		public ScreenOverlay(Game game)
@@ -45,8 +52,7 @@ namespace WarGame
 		public override void Initialize()
 		{
 			// TODO: Add your initialization code here
-			
-			m_currentMessage = "Test Message";
+
 			base.Initialize();
 		}
 
@@ -75,7 +81,6 @@ namespace WarGame
 			// TODO: Add your update code here
 			spriteBatch.Begin();
 			DrawOverlayElement(gameTime);
-			//DrawBigMessage(gameTime);
 			spriteBatch.End();
 
 		}
@@ -85,17 +90,13 @@ namespace WarGame
 			float timerStep=(float)gameTime.ElapsedGameTime.TotalSeconds;
 			
 			
-			float fontScale = 5f;
+			float fontScale = 2f;
 			float Xdone = m_messageScrollTimer / MessageScrollDuration;
-			float Xratio = atGame.ScreenWidth/m_bigMessageLineSize.X;
+
 			float sign = Math.Sign(0.5f - Xdone);
-			Console.WriteLine(sign+" "+m_messagePauseTimer);
-			
+			//Console.WriteLine(sign+" "+m_messagePauseTimer);
 
-			Rectangle upperLine = new Rectangle((int)Vector2.Zero.X, (int)Vector2.Zero.Y, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y);
-			Rectangle lowerLine = new Rectangle((int)Vector2.Zero.X, (int)m_bigMessageLineSize.Y*3, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y*4);
-
-			m_bigMessageOffset.Y = Xratio * m_bigMessageLineSize.Y;
+			m_bigMessageOffset.Y = m_Yratio * m_bigMessageLineSize.Y/3.5f;
 
 			if ( (0 == (int)m_bigMessageOffset.X) && (m_messagePauseTimer += timerStep) < MessagePauseDuration)
 			{
@@ -104,18 +105,18 @@ namespace WarGame
 			else
 			{
 				m_messageScrollTimer += timerStep;
-				m_bigMessageOffset.X = sign*Xratio * MathHelper.SmoothStep(0, m_bigMessageLineSize.X * 2, 0.5f * sign - Xdone * sign);
+				m_bigMessageOffset.X = sign*m_Xratio * MathHelper.SmoothStep(0, m_bigMessageLineSize.X * 2, 0.5f * sign - Xdone * sign);
 			}	
 			
 
 			this.spriteBatch.Draw(
-				m_phaseMessageSprite, Vector2.Zero*Xratio + m_bigMessageOffset,
-				upperLine, atGame.ActivePlayer.TeamColor, 0f, Vector2.Zero, Xratio, SpriteEffects.None, 1);
+				m_phaseMessageSprite, Vector2.Zero*m_Xratio + m_bigMessageOffset,
+				m_upperLine, atGame.ActivePlayer.TeamColor, 0f, Vector2.Zero, m_Xratio, SpriteEffects.None, 1);
 
 			m_bigMessageOffset.X *= -1;
 			this.spriteBatch.Draw(
-				m_phaseMessageSprite, new Vector2(0, m_bigMessageLineSize.Y) * Xratio + m_bigMessageOffset,
-				lowerLine, atGame.ActivePlayer.TeamColor, 0f, Vector2.Zero, Xratio, SpriteEffects.None, 1);
+				m_phaseMessageSprite, new Vector2(0, m_bigMessageLineSize.Y) * m_Xratio + m_bigMessageOffset,
+				m_lowerLine, atGame.ActivePlayer.TeamColor, 0f, Vector2.Zero, m_Xratio, SpriteEffects.None, 1);
 			m_bigMessageOffset.X *= -1;
 
 			/*if (m_bigMessageOffset.X > m_bigMessageLineSize.X*2){
@@ -127,21 +128,35 @@ namespace WarGame
 			}
 		}
 
-		public void DisplayDispatchMessage(float scrollDuration=1f, float pauseDuration=1f)
+		public void ResetBigMessage()
 		{
 			DrawOverlayElement -= DrawBigMessage;
+			m_messageScrollTimer = 0;
+			m_messagePauseTimer = 0;
+			float m_Xratio = atGame.ScreenWidth / m_bigMessageLineSize.X;
+			float m_Yratio = atGame.ScreenHeight / m_bigMessageLineSize.Y;
+
+			m_bigMessageOffset = Vector2.Zero;
+			m_bigMessageOffset.X = -m_bigMessageLineSize.X;
+		}
+
+		public void DisplayMessage(BigMessages msgType, Player player=null,float scrollDuration=1.5f, float pauseDuration=1.5f)
+		{
+			if (player == null) player = atGame.ActivePlayer;
+
+			int rowOffset = (int)msgType;
+			Console.WriteLine(rowOffset);
+
+			m_upperLine = new Rectangle((int)Vector2.Zero.X, (int)m_bigMessageLineSize.Y * rowOffset, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * (rowOffset+1));
+						
+			m_lowerLine = new Rectangle((int)Vector2.Zero.X, (int)m_bigMessageLineSize.Y * 3, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * 4);
+
+			ResetBigMessage();
 			MessagePauseDuration = pauseDuration;
 			MessageScrollDuration = scrollDuration;
-			m_messageScrollTimer=0;
-			m_messagePauseTimer = 0;
-			m_bigMessageOffset = Vector2.Zero;
-			m_bigMessageOffset.X -= m_bigMessageLineSize.X;
+
 			DrawOverlayElement += DrawBigMessage;
 		}
 
-		private string DispatchMessage(Player player)
-		{
-			return string.Format(m_dispatchMessage, player.Name);
-		} 
 	}
 }

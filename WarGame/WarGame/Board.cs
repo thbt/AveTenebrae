@@ -14,6 +14,8 @@ namespace WarGame {
 		public int BoardPixelHeight { get { return (int)tileMap[RowCount - 1, ColumnCount - 1].SpritePosition.Y + tileMap[RowCount - 1, ColumnCount - 1].Height; } }
 		public int HexPixelWidth { get { return (int)tileMap[0, 0].Width; } }
 		public int HexPixelHeight { get { return (int)tileMap[0, 0].Height; } }
+
+
 		
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
@@ -75,7 +77,7 @@ namespace WarGame {
 			}
 		}
 		
-		public List<HexTile> GetNeighbours(HexTile tile) {
+		public List<HexTile> GetNeighbours(HexTile tile, int movement=int.MaxValue) {
 
 
 			List<HexTile> neighbours = new List<HexTile>();
@@ -85,20 +87,32 @@ namespace WarGame {
 			bool xParity = tile.GridPosition.X % 2 != 0; // true : pair, false : impair
 			// Pour une tile (X,Y) avec x pair, les voisins sont :
 			if (!xParity) { // pair
-				if (p.X > 0 && p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X - 1]);//NO
-				if (p.Y > 0) neighbours.Add(tileMap[p.Y - 1,p.X]); //N
-				if (p.X < ColumnCount-1 && p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X + 1]); //NE
-				if (p.X < ColumnCount-1) neighbours.Add(tileMap[ p.Y,p.X + 1]); //SE
-				if (p.X > 0) neighbours.Add(tileMap[p.Y,p.X - 1]);
-				if (p.Y < RowCount-1) neighbours.Add(tileMap[p.Y + 1,p.X]);
+				if (p.X > 0 && p.Y > 0 && tileMap[p.Y - 1, p.X - 1].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y - 1, p.X - 1]);//NO
+				if (p.Y > 0 && tileMap[p.Y - 1, p.X].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y - 1, p.X]); //N
+				if (p.X < ColumnCount - 1 && p.Y > 0 && tileMap[p.Y - 1, p.X + 1].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y - 1, p.X + 1]); //NE
+				if (p.X < ColumnCount - 1 && tileMap[p.Y, p.X + 1].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y, p.X + 1]); //SE
+				if (p.X > 0 && tileMap[p.Y, p.X - 1].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y, p.X - 1]);
+				if (p.Y < RowCount - 1 && tileMap[p.Y + 1, p.X].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y + 1, p.X]);
 			}// Pour une tile (X,Y) avec x impair, the neighbors are:			
 			else { // impair
-				if (p.X > 0) neighbours.Add(tileMap[ p.Y,p.X - 1]);
-				if (p.Y > 0) neighbours.Add(tileMap[ p.Y - 1,p.X]);
-				if (p.X < ColumnCount-1) neighbours.Add(tileMap[ p.Y,p.X + 1]);
-				if (p.X < ColumnCount-1 && p.Y < RowCount-1) neighbours.Add(tileMap[ p.Y + 1,p.X + 1]);
-				if (p.Y < RowCount-1) neighbours.Add(tileMap[ p.Y + 1,p.X]);
-				if (p.X > 0 && p.Y < RowCount-1) neighbours.Add(tileMap[p.Y + 1,p.X - 1]);
+				if (p.X > 0 && tileMap[p.Y, p.X - 1].FinalCost <= movement)
+					neighbours.Add(tileMap[ p.Y,p.X - 1]);
+				if (p.Y > 0 && tileMap[p.Y - 1, p.X].FinalCost <= movement)
+					neighbours.Add(tileMap[ p.Y - 1,p.X]);
+				if (p.X < ColumnCount - 1 && tileMap[p.Y, p.X + 1].FinalCost <= movement)
+					neighbours.Add(tileMap[ p.Y,p.X + 1]);
+				if (p.X < ColumnCount - 1 && p.Y < RowCount - 1 && tileMap[p.Y + 1, p.X + 1].FinalCost <= movement)
+					neighbours.Add(tileMap[ p.Y + 1,p.X + 1]);
+				if (p.Y < RowCount - 1 && tileMap[p.Y + 1, p.X].FinalCost <= movement)
+					neighbours.Add(tileMap[ p.Y + 1,p.X]);
+				if (p.X > 0 && p.Y < RowCount - 1 && tileMap[p.Y + 1, p.X - 1].FinalCost <= movement)
+					neighbours.Add(tileMap[p.Y + 1,p.X - 1]);
 			}
 			
 			return neighbours;
@@ -117,7 +131,7 @@ namespace WarGame {
 		public void CreateGraph() {
 			tileGraph = new Dictionary<HexTile,List<HexTile>>(ColumnCount * RowCount);
 			foreach (HexTile t in this.tileMap) { // tile
-				if (t.Walkable)
+				//if (t.Walkable)
 					tileGraph.Add(t, this.GetNeighbours(t));
 			}
 		}
@@ -171,25 +185,50 @@ namespace WarGame {
 			return GetHexAtCoordinates(coords.X, coords.Y);
 		}
 
-		public List<HexTile> GetNeighboursRanged(HexTile source, int range)
-		{			
+		public List<HexTile> GetNeighboursRanged(HexTile source, int range, bool useCosts = true, HexTile previousSource = null)
+		{
 			//prend la liste des voisins directs
-			List<HexTile> neighbours = GetNeighbours(source);
 
-			//si portée supérieure à 0, va chercher les voisins lointains
-			if (--range > 0)
+			int stepCost = 1;
+			List<HexTile> neighbours = new List<HexTile>();
+			HashSet<HexTile> childrenNeighbours = new HashSet<HexTile>();
+			//selection avec prise en compte des couts de deplacement
+			if (useCosts)
 			{
-				HashSet<HexTile> childrenNeighbours = new HashSet<HexTile>();
+				neighbours = GetNeighbours(source, range);
 
 				foreach (HexTile sub in neighbours)
 				{
-					childrenNeighbours.UnionWith(GetNeighboursRanged(sub, range));
+					if (sub != previousSource)
+					{
+						
+						childrenNeighbours.UnionWith(GetNeighboursRanged(sub, range - sub.FinalCost, useCosts, source));
+					}
 				}
-				neighbours.AddRange(childrenNeighbours);
+			}
+			//selection par portée absolue: si portée supérieure à 0, va chercher les voisins lointains
+			else
+			{
+				neighbours = GetNeighbours(source);
+				foreach (HexTile sub in neighbours)
+				{
+					//if (sub.totalPathCost >= source.totalPathCost + stepCost || sub.totalPathCost == 0)
+					sub.totalPathCost = source.totalPathCost + stepCost;
+					if (range > stepCost)
+					{						
+						childrenNeighbours.UnionWith(GetNeighboursRanged(sub, range - stepCost, useCosts));
+						sub.totalPathCost += stepCost;
+					}
+
+				}
+
 			}
 
+			neighbours.AddRange(childrenNeighbours);
+
+
 			return neighbours;
-			
+
 		}
 
 		/// <summary>
@@ -211,29 +250,29 @@ namespace WarGame {
 				{
 
 					List<HexTile> farNeighbours = GetNeighbours(sub);
-					
 
-						if (hexGroup.Count < count)
+
+					if (hexGroup.Count < count)
+					{
+
+
+						sub.Status = HexTile.HexStatus.HexDS_DispatchableA;
+						hexGroup.Add(sub);
+						if ((sub.Status & HexTile.HexStatus.HexDS_DispatchableA)
+							!= HexTile.HexStatus.HexDS_DispatchableA)
 						{
-
-
-							sub.Status = HexTile.HexStatus.HexDS_DispatchableA;
-							hexGroup.Add(sub);
-							if ((sub.Status & HexTile.HexStatus.HexDS_DispatchableA)
-								!= HexTile.HexStatus.HexDS_DispatchableA)
-							{
-								hexGroup.Union<HexTile>(farNeighbours);
-								GetNeighbourGroup(sub, hexGroup, count);		
-							}
-
+							hexGroup.Union<HexTile>(farNeighbours);
+							GetNeighbourGroup(sub, hexGroup, count);
 						}
+
+					}
 
 
 				}
 				hexGroup.Add(source);
 				source.Status = HexTile.HexStatus.HexDS_DispatchableA;
-	
-			
+
+
 			}
 
 

@@ -23,7 +23,7 @@ namespace WarGame
 		private HexTile m_selHex;
 		public HexTile SelectedHex { get { return m_selHex; } set { m_selHex = value;  } }
 
-		public HexCursor selHexCursor;
+		//public HexCursor selHexCursor;
 
 		public Texture2D sprHexSelect;
 

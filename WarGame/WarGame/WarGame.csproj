@@ -80,20 +80,22 @@
     <Compile Include="ATBaseComponent.cs" />
     <Compile Include="FreeCursor.cs" />
     <Compile Include="BaseCursor.cs" />
-    <Compile Include="HexCursor.cs" />
     <Compile Include="Partial\ATDrawableComponentFX.cs" />
     <Compile Include="HexTile.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="ISelectable.cs" />
     <Compile Include="Partial\InputManagerMouse.cs" />
+    <Compile Include="PathFinder.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ATGame.cs" />
     <Compile Include="ResourceManager.cs" />
+    <Compile Include="ScreenOverlay.cs" />
     <Compile Include="TeamColors.cs" />
     <Compile Include="Unit.cs" />
+    <Compile Include="UnitSubclasses.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AT_diagram_v1.png" />
