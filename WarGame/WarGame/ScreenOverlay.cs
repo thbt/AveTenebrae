@@ -33,8 +33,8 @@ namespace WarGame
 		public float MessageScrollDuration = 1f;
 		private float m_messageScrollTimer = 0f;
 		private float m_messagePauseTimer = 0f;
-		private float m_Xratio = 0f;
-		private float m_Yratio = 0f;
+		private float m_Xratio;
+		private float m_Yratio;
 
 		
 		private DrawDelegate DrawOverlayElement = delegate{ };
@@ -133,8 +133,8 @@ namespace WarGame
 			DrawOverlayElement -= DrawBigMessage;
 			m_messageScrollTimer = 0;
 			m_messagePauseTimer = 0;
-			float m_Xratio = atGame.ScreenWidth / m_bigMessageLineSize.X;
-			float m_Yratio = atGame.ScreenHeight / m_bigMessageLineSize.Y;
+			m_Xratio = atGame.ScreenWidth / m_bigMessageLineSize.X;
+			m_Yratio = atGame.ScreenHeight / m_bigMessageLineSize.Y;
 
 			m_bigMessageOffset = Vector2.Zero;
 			m_bigMessageOffset.X = -m_bigMessageLineSize.X;
@@ -142,16 +142,18 @@ namespace WarGame
 
 		public void DisplayMessage(BigMessages msgType, Player player=null,float scrollDuration=1.5f, float pauseDuration=1.5f)
 		{
+			ResetBigMessage();
+			
 			if (player == null) player = atGame.ActivePlayer;
 
 			int rowOffset = (int)msgType;
 			Console.WriteLine(rowOffset);
 
-			m_upperLine = new Rectangle((int)Vector2.Zero.X, (int)m_bigMessageLineSize.Y * rowOffset, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * (rowOffset+1));
+			m_upperLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * rowOffset, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * (rowOffset));
 						
-			m_lowerLine = new Rectangle((int)Vector2.Zero.X, (int)m_bigMessageLineSize.Y * 3, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * 4);
+			m_lowerLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * 3, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * 4);
 
-			ResetBigMessage();
+
 			MessagePauseDuration = pauseDuration;
 			MessageScrollDuration = scrollDuration;
 
