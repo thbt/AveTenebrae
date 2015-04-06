@@ -17,7 +17,7 @@ namespace WarGame
 	/// </summary>
 	public partial class InputManager : ATComponent
 	{
-
+		
 		private FreeCursor m_cursor;
 		//timestamp du dernier debut de click
 		private double m_leftButtonHoldTimer = 0;
@@ -57,8 +57,9 @@ namespace WarGame
 				nextHex.Highlight = true;
 				m_lastRefHex.Highlight = false;
 
-				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
+				/*if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 				{
+
 					foreach (HexTile h in m_lastRangedNeighbourhood)
 					{
 						h.SetHighlighted(false);
@@ -69,6 +70,7 @@ namespace WarGame
 					List<HexTile> rangedNeighbourhood = atGame.GameBoard.GetNeighboursRanged(nextHex, 5);
 					m_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
 
+					//if ( ATGame.DEBUG_MODE )
 					foreach (HexTile h in rangedNeighbourhood)
 					{
 						h.SetHighlighted(true);
@@ -78,7 +80,7 @@ namespace WarGame
 					nextHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
 					m_lastRangedNeighbourhood = rangedNeighbourhood;
 				}
-				
+				*/
 				m_lastRefHex = nextHex;
 
 				/*nextHex.SetColorBlink(atGame.ActivePlayer.GetColorBlinkList(), 1f, false, true, true);

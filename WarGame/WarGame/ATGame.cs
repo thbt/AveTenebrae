@@ -172,6 +172,7 @@ namespace WarGame {
 
 		private void PrepareDispatchPhase()
 		{
+			m_currentPhaseLogic -= DispatchPhase;
 			int unitsPerTeam = nbSnipers + nbScout + nbHeavies;
 			int dispatchSpotsPerTeam = unitsPerTeam * 2;
 			int dispatchColumns = 3;
@@ -195,6 +196,7 @@ namespace WarGame {
 				}
 			}
 
+			Overlay.DisplayMessage(ScreenOverlay.BigMessages.Dispatch);
 			m_currentPhaseLogic+=DispatchPhase;
 			CurrentPhase = GamePhase.GP_Dispatch;
 		}
@@ -207,34 +209,44 @@ namespace WarGame {
 
 			if (ActivePlayer==PlayerA && readyA)
 			{
-				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
+				if (ActivePlayer.SelectedUnit != null)
+					ActivePlayer.SelectedUnit.UnSelect();
+
+				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
 				{
+					
 					m_phaseChangeTimer = 0;
+					//Overlay.DisplayMessage(ScreenOverlay.BigMessages.Dispatch);
+					
 					Console.WriteLine("Swapping players");
 					SwapPlayerTurns();
+					PrepareDispatchPhase();
 				}
 
 			}
 
+
+
 			if (readyA && readyB)
 			{
-				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
+				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
 				{
+					foreach (HexTile h in GameBoard.GetTileList())
+					{
+						h.SetDispatchable(false, false);
+						h.SetHighlighted(false);
+						h.ResetGraphics(true);
+					}
+
 					m_phaseChangeTimer = 0;
 					Console.WriteLine("Dispatch phase finished");
 					m_currentPhaseLogic -= DispatchPhase;
 					SwapPlayerTurns();
+					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
 					m_currentPhaseLogic = MovementPhase;
-
-					for (int x = 0; x < GameBoard.ColumnCount; x++)
-					{
-						for (int y = 0; y < GameBoard.RowCount; y++)
-						{
-							GameBoard.tileMap[y, x].SetDispatchable(false, false);
-							GameBoard.tileMap[y, x].SetHighlighted(false);
-						}
-					}
+					
 					CurrentPhase = GamePhase.GP_Movement;
+					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
 				}
 
 			}
@@ -243,6 +255,7 @@ namespace WarGame {
 
 		private void MovementPhase(GameTime gameTime)
 		{
+			
 			//quand terminée, lancer la CombatPhase
 			int nbFrozenUnits = ActivePlayer.OwnedUnits.Count(u => u.Freeze == true);
 			/*foreach (Unit u in ActivePlayer.ownedUnits)
@@ -252,15 +265,16 @@ namespace WarGame {
 
 			if (nbFrozenUnits >= ActivePlayer.OwnedUnits.Count)//forcé false pour les tests de movements
 			{
-				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
+				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
 				{
 					m_phaseChangeTimer = 0;
 					Console.WriteLine("Movement phase finished");
 
 					ActivePlayer.UnfreezeUnits();
-
+					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
 					CurrentPhase = GamePhase.GP_Combat;
 					m_currentPhaseLogic = CombatPhase;
+					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Combat);
 				}				
 			}
 		}
@@ -268,6 +282,7 @@ namespace WarGame {
 
 		private void CombatPhase(GameTime gameTime)
 		{
+			
 			//quand terminée, lancer la MovementPhase pour l'autre équipe
 			int nbFrozenUnits = ActivePlayer.OwnedUnits.Count(u => u.Freeze == true);			
 
@@ -277,9 +292,13 @@ namespace WarGame {
 				{
 					m_phaseChangeTimer = 0;
 					SwapPlayerTurns();
+					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
 					CurrentPhase = GamePhase.GP_Movement;
 					m_currentPhaseLogic = MovementPhase;
+					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
 					Console.WriteLine("Combat phase finished");
+
+
 				}
 
 			}

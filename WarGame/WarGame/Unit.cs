@@ -59,6 +59,7 @@ namespace WarGame
 				if (!m_freeze && value)
 			{
 				AlphaBlinkEnable = false; Console.WriteLine("Freezing unit");
+				ResetRangeGraphics();
 				DrawFX += DrawFrozen;
 			}
 				else if (!value)
@@ -137,18 +138,28 @@ namespace WarGame
 		public void Select()
 		{
 
-			if (atGame.ActivePlayer.SelectedUnit != null )
+			if (atGame.ActivePlayer.SelectedUnit != null)
+			{
+				atGame.ActivePlayer.SelectedUnit.ResetRangeGraphics();
 				atGame.ActivePlayer.SelectedUnit.UnSelect();
-			atGame.ActivePlayer.SelectedUnit = this;
+			}
+				
 
+			if (! (this == atGame.ActivePlayer.SelectedUnit))
+				ResetRangeGraphics();
+
+			atGame.ActivePlayer.SelectedUnit = this;
+						
 			if (this == atGame.ActivePlayer.SelectedUnit)
 			{
+				
 				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
 					this.HighlightMovementRange();
 				else
 					if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
 						this.HighlightAttackRange();
 			}
+
 			
 			this.SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
 
@@ -157,9 +168,8 @@ namespace WarGame
 		public void UnSelect()
 		{
 
-			HexTile.ResetGraphics(ReachableHexes);
-			HexTile.ResetGraphics(AttackableHexes);
-			List<HexTile> reachablePlaces = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
+			
+			//List<HexTile> reachablePlaces = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
 			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
 
 			if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
@@ -170,6 +180,8 @@ namespace WarGame
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
 			ColorBlinkEnable = false;
+
+			ResetRangeGraphics();
 		}
 
 		public void PutOnHex(HexTile hex)
@@ -225,13 +237,13 @@ namespace WarGame
 			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
 			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
 			{
-				OccupiedHex.ResetGraphics();
+				OccupiedHex.ResetGraphics(true);
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
 				Freeze = true;
 				BounceEnable = false;
 				Console.WriteLine(unitClass + " arrived at " + nextDest);
-				HexTile.ResetGraphics(ReachableHexes);
+				HexTile.ResetGraphics(ReachableHexes,true);
 				OccupiedHex.ResetGraphics();
 			}
 				
@@ -292,13 +304,17 @@ namespace WarGame
 
 				ReachableHexes = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
 				//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-
+				ReachableHexes.Add(OccupiedHex);
 				foreach (HexTile h in ReachableHexes)
 				{
-					h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
-					h.TeamColorBlink(Owner);					
-					h.ColorBlinkEnable = true;
 					
+					h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
+					h.ResetGraphics(true);
+					h.TeamColorBlink(Owner);					
+					
+					h.colorMultiplier.W = 1f;
+					h.ColorBlinkEnable = true;
+
 					//h.SetHighlighted(highlight);
 				}
 
@@ -310,10 +326,12 @@ namespace WarGame
 			
 			AttackableHexes = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.Range,false);
 			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-
+			AttackableHexes.Add(OccupiedHex);
 			foreach (HexTile h in AttackableHexes)
 			{
+				
 				h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
+				h.ResetGraphics(true);
 				h.TeamColorBlink(Owner);
 				h.colorMultiplier.W = -0.5f;
 				h.ColorBlinkEnable = true;
@@ -324,6 +342,12 @@ namespace WarGame
 			OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
 
 		}	
+
+		public virtual void ResetRangeGraphics(){
+			HexTile.ResetGraphics(ReachableHexes, true);
+			HexTile.ResetGraphics(AttackableHexes, true);
+		}
+
 
 		public void PaletteSwap(Color targetColor)
 		{

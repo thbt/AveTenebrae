@@ -76,8 +76,12 @@ namespace WarGame
 			m_mPosition.X = m_mCurState.X;
 			m_mPosition.Y = m_mCurState.Y;
 
-			MouseUpdate(gameTime);
-			KeyboardUpdate(gameTime);
+			if (!atGame.Overlay.IsDisplayingMessage || ATGame.DEBUG_MODE)
+			{
+				MouseUpdate(gameTime);
+				KeyboardUpdate(gameTime);
+			}
+
 
 			base.Update(gameTime);
 			m_mLastState = m_mCurState;
@@ -200,7 +204,7 @@ namespace WarGame
 			//options debug: force l'affichage d'un message de début de gamephase
 			if (m_kbCurState.IsKeyDown(Keys.B) && m_kbLastState.IsKeyUp(Keys.B))
 			{
-				atGame.Overlay.DisplayMessage(ScreenOverlay.BigMessages.Dispatch);
+				atGame.Overlay.DisplayMessage(atGame.CurrentPhase,null,1f,1.5f);
 			}
 
 			//options debug: test de selection de group par nombre (propagation d'une source)
@@ -218,6 +222,14 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.S) && m_kbLastState.IsKeyUp(Keys.S))
 			{
 				atGame.SwapPlayerTurns();
+				
+			}
+
+			if (m_kbCurState.IsKeyDown(Keys.R) && m_kbLastState.IsKeyUp(Keys.R))
+			foreach (HexTile h in atGame.GameBoard.GetTileList())
+			{
+				h.SetDispatchable(false, false);
+				h.SetHighlighted(false);
 			}
 
 		}

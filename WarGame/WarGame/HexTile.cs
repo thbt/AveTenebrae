@@ -18,7 +18,10 @@ namespace WarGame {
 			HexDS_VisibleB = 16,
 		};
 
-		
+		private delegate void DrawSpriteDlg(GameTime gameTime);
+		private DrawSpriteDlg DrawSprite = delegate { };
+
+		private Texture2D hillSpr, plainSpr, forestSpr;
 		protected Texture2D mainSpr;
 		protected Texture2D selectSpr;		
 
@@ -54,7 +57,7 @@ namespace WarGame {
 			Status = HexStatus.HexDS_Normal;
 			GridPosition = new Point(x, y);
 			Occupant = null;	
-			BaseColor = this.Walkable ? Color.Green : Color.Brown;
+			BaseColor = Color.White;
 
 			
 		}
@@ -68,13 +71,16 @@ namespace WarGame {
 
 		public HexTile ChangeToPlain()
 		{
-
+			
 			BaseCost = 1;
 			defBonus = 0;
 			atkBonus = 0;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			BaseColor = Color.SandyBrown;
+			//BaseColor = Color.SandyBrown;
+			DrawSprite = delegate { this.spriteBatch.Draw(plainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };
+			
+
 			return this;
 		}
 		public static HexTile CreateHill(ATGame game, int x, int y)
@@ -92,13 +98,18 @@ namespace WarGame {
 			atkBonus = 2;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			BaseColor = Color.MediumSeaGreen;
+			//BaseColor = Color.MediumSeaGreen;
+			DrawSprite = delegate { this.spriteBatch.Draw(hillSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };
+			
+
 			return this;
 		}
 		public static HexTile CreateForest(ATGame game, int x, int y)
 		{
 			HexTile tmp = new HexTile(game, x, y);
+			
 			tmp.ChangeToForest();
+			tmp.mainSpr = tmp.forestSpr;
 			return tmp;
 		}
 
@@ -109,14 +120,19 @@ namespace WarGame {
 			atkBonus = 0;
 			defMultiplier = 1;
 			atkMultiplier = 1;
-			BaseColor = Color.DarkGreen;
+			//BaseColor = Color.DarkGreen;
+			DrawSprite = delegate { this.spriteBatch.Draw(forestSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };		
+
 			return this;
 		}
 
 		protected override void LoadContent() {
-			mainSpr = Game.Content.Load<Texture2D>("hex");
+			mainSpr = new Texture2D(GraphicsDevice, 64, 64);
+			//mainSpr = Game.Content.Load<Texture2D>("hex");
 			selectSpr = Game.Content.Load<Texture2D>("hexSelected");
-
+			forestSpr = Game.Content.Load<Texture2D>("hexForest");
+			hillSpr = Game.Content.Load<Texture2D>("hexMountain");
+			plainSpr = Game.Content.Load<Texture2D>("hexPlain");
 		}
 
 		public override void Initialize() {
@@ -125,21 +141,23 @@ namespace WarGame {
 			sprOrigin = new Vector2(
 				GridPosition.X * Width * 0.75f,
 				GridPosition.Y * Height + ((GridPosition.X % 2 != 0) ? (Height / 2f) : 0));
-			Console.WriteLine(SpritePosition);			
+			Console.WriteLine(SpritePosition);	
+			
 		}
 
 		public override void Update(GameTime gameTime) {
 
+			//finalColor = BaseColor;
 			sprOffset = atGame.Panning;
-		
+			
 			//base.Update(gameTime);
 		}
 
 		public override void Draw(GameTime gameTime) {
 
-			
+			finalColor = BaseColor;
 			//il faut continuer à calculer certains effets, sinon ils sont désynchro lorsqu'ils reviennent dans la portion affichable
-			finalColor = new Color(BaseColor.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
+			//finalColor = new Color(Color.White.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
 			base.DrawFX(gameTime);
 
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
@@ -147,7 +165,9 @@ namespace WarGame {
 			{
 				this.spriteBatch.Begin();
 				//hex
-				this.spriteBatch.Draw(mainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor);
+
+				DrawSprite(gameTime);
+
 
 				//hex selectionné? si oui, le marquer
 				if (atGame.ActivePlayer.SelectedHex == this)
@@ -155,7 +175,7 @@ namespace WarGame {
 					this.spriteBatch.Draw(
 						selectSpr,
 						new Vector2(SpritePosition.X, SpritePosition.Y),
-						new Color(atGame.ActivePlayer.TeamColor.ToVector4() * 1.975f));
+						new Color(atGame.ActivePlayer.TeamColor.ToVector4() * 1.5f));
 				}
 				else if (Highlight)
 				{
@@ -174,15 +194,15 @@ namespace WarGame {
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Height / 3f),
 					Color.Black);*/
 
-				this.spriteBatch.DrawString(
+				/*this.spriteBatch.DrawString(
 					ResourceManager.font,
 					"C:"+this.BaseCost+"\nM:"+totalPathCost,
 									//(SpritePosition+SpriteCenter)*0.5f,
 					//new Vector2(GridPosition.X * Width * 0.75f + Width / 3f,SpritePosition.Y + Height / 3f),
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Height / 8f),
-					new Color(0,0,0,0.33f));
+					new Color(0,0,0,0.33f));*/
 
-				//base.Draw(gameTime);
+				base.Draw(gameTime);
 				this.spriteBatch.End();
 			}
 
@@ -200,6 +220,7 @@ namespace WarGame {
 		}
 		public void UnSelect()
 		{
+			
 			atGame.ActivePlayer.SelectedHex = null;
 			this.ResetGraphics();
 		}
@@ -207,28 +228,42 @@ namespace WarGame {
 		public void SetDispatchable(bool teamA, bool teamB)
 		{
 			colorBlinkCycle = new List<Color>();
+			ColorBlinkEnable = false;
+			ResetGraphics();
+			finalColor = Color.White;
 
-			if (teamA){
-				Status |= HexStatus.HexDS_DispatchableA;
-				colorBlinkCycle = TeamColorBlink(atGame.PlayerA);				
-			}				
-			else
-				Status &= ~HexStatus.HexDS_DispatchableA;
+			Console.WriteLine("Dispatch: {0} - {1}", teamA, teamB);
+			if (teamA || teamB)
+			{
+				if (teamA)
+				{
+					Status |= HexStatus.HexDS_DispatchableA;
+					colorBlinkCycle = TeamColorBlink(atGame.PlayerA);
+					DrawFX += DrawColorBlink;
+				}
+				else
+				{
+					Status &= ~HexStatus.HexDS_DispatchableA;
+				}
 
-			if (teamB){
-				Status |= HexStatus.HexDS_DispatchableB;
-				colorBlinkCycle = TeamColorBlink(atGame.PlayerB);
+				if (teamB)
+				{
+					Status |= HexStatus.HexDS_DispatchableB;
+					colorBlinkCycle = TeamColorBlink(atGame.PlayerB);
+					DrawFX += DrawColorBlink;
+				}
+				else
+					Status &= ~HexStatus.HexDS_DispatchableB;
 
-			}				
-			else
-				Status &= ~HexStatus.HexDS_DispatchableB;
-
-			if ( teamA || teamB ){
-				colorBlinkDuration = 1.5f;
-				DrawFX += DrawColorBlink;
-			}				
-			else
-				DrawFX -= DrawColorBlink;
+				if (teamA || teamB)
+				{
+					colorBlinkDuration = 1.5f;
+					colorBlinkTimer = 0f;
+				}		
+			}
+		
+			
+			
 		}
 
 		public void SetHighlighted(bool highLight)
@@ -242,19 +277,26 @@ namespace WarGame {
 			{
 				colorMultiplier = Vector4.One;
 				colorOffset = Vector4.Zero;
+				ResetGraphics();
 			}
 
 		}
 
-		public List<Color> TeamColorBlink(Player player)
+		public List<Color> TeamColorBlink(Player player, Color? otherColor=null)
 		{
-			this.ResetGraphics();
+			this.ResetGraphics(true);
 			List<Color> cbl = new List<Color>();
+
+			if (!otherColor.HasValue)
+				otherColor = this.BaseColor;			
+				
 			cbl.Add(player.TeamColor);
-			cbl.Add(new Color((this.BaseColor.ToVector4() * 0.5f + player.TeamColor.ToVector4() * 0.7f)));
+			cbl.Add(new Color((otherColor.Value.ToVector4() * 0.5f + player.TeamColor.ToVector4() * 0.7f)));
 			colorBlinkCycle = cbl;
-			colorBlinkTimer = 0;
-			colorBlinkDuration = 1f;
+			colorBlinkDuration = 1.5f;
+			colorBlinkTimer = 0f;
+			colorBlinkSign = 1f;
+			
 			
 			return cbl;
 		}
@@ -270,21 +312,38 @@ namespace WarGame {
 			return atGame.GameBoard.GetNeighbours(this);
 		}
 
-		public void ResetGraphics()
+		public void ResetGraphics(bool fullReset=false)
 		{
 			colorOffset=Vector4.Zero;
 			colorMultiplier=Vector4.One;
 			ColorBlinkEnable = false;
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
-			colorBlinkTimer = 0;
+			
+			if (fullReset)
+			{
+				colorBlinkCurrent = BaseColor;
+				colorBlinkIgnoreWhite = true;
+				colorBlinkLoop = true;
+				colorCurrentIndex = 0;
+				colorBlinkSign = 1f;
+				colorBlinkTimer = 0;
+				colorBlinkDuration = 1f;
+
+				blinkSign = 1;				
+				colorBlinkCurrent = BaseColor;
+
+				blinkAlpha = 0;
+				finalColor = BaseColor;
+				blinkTimer = 0;
+			}
 			
 		}
 
-		public static void ResetGraphics(List<HexTile> resetList)
+		public static void ResetGraphics(List<HexTile> resetList, bool fullReset = false)
 		{
-			foreach (HexTile h in resetList)			
-				h.ResetGraphics();			
+			foreach (HexTile h in resetList)
+				h.ResetGraphics(fullReset);			
 		}
 
 	}

@@ -18,6 +18,7 @@ namespace WarGame
 	public class FreeCursor : BaseCursor
 	{
 
+		public Color cursorColor = Color.White;
 		public FreeCursor(ATGame game)
 			: base(game)
 		{
@@ -64,7 +65,7 @@ namespace WarGame
 		public override void Draw(GameTime gameTime)
 		{
 			spriteBatch.Begin();
-			this.spriteBatch.Draw(sprCurrent, position, Color.White);
+			this.spriteBatch.Draw(sprCurrent, position, cursorColor);
 
 
 			spriteBatch.End();

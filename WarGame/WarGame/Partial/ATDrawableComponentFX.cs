@@ -29,7 +29,11 @@ namespace WarGame
 				if (m_blinkEnable)
 					DrawFX += DrawAlphaBlink;
 				else
+				{
 					DrawFX -= DrawAlphaBlink;
+					//finalColor = Color.White;
+				}
+					
 			}
 		}
 
@@ -50,6 +54,7 @@ namespace WarGame
 				m_blinkEnable = value;
 				if (m_blinkEnable)
 				{
+					//colorBlinkTimer = 0;
 					if (colorBlinkCycle == null)
 					{
 						colorBlinkCycle = new List<Color>();
@@ -58,12 +63,14 @@ namespace WarGame
 						colorBlinkCycle.Add(TeamColors.Blue);
 						colorBlinkCycle.Add(Color.White);
 					}
-
 					DrawFX += DrawColorBlink;
 				}
-
 				else
-					DrawFX -= DrawColorBlink;
+				{
+					//finalColor = BaseColor;
+					DrawFX -= DrawColorBlink;					
+				}
+					
 			}
 		}
 
@@ -77,7 +84,7 @@ namespace WarGame
 		protected int colorCurrentIndex = 0;
 		protected float colorBlinkSign = 1f;
 		protected float colorBlinkTimer = 0;
-		protected float colorBlinkDuration = 0.75f;
+		protected float colorBlinkDuration = 1f;
 
 
 		//variables de mouvement/flottement des sprites

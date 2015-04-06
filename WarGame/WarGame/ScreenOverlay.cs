@@ -17,11 +17,11 @@ namespace WarGame
 	/// </summary>
 	public class ScreenOverlay : ATDrawableComponent
 	{
+		public bool IsDisplayingMessage { get; protected set; }
 		public enum BigMessages { Dispatch=1, Movement=2, Combat=3, GameOver=0 };
 		private BigMessages m_bigMessageType=BigMessages.Dispatch;
 		private SpriteFont m_bigFont;
-
-
+		
 		private Texture2D m_phaseMessageSprite;
 		
 		private Rectangle m_upperLine; 
@@ -42,6 +42,7 @@ namespace WarGame
 			: base(game)
 		{
 			atGame.Components.Add(this);
+			this.DrawOrder = int.MaxValue;
 			// TODO: Construct any child components here
 		}
 
@@ -87,8 +88,7 @@ namespace WarGame
 
 		private void DrawBigMessage(GameTime gameTime)
 		{
-			float timerStep=(float)gameTime.ElapsedGameTime.TotalSeconds;
-			
+			float timerStep=(float)gameTime.ElapsedGameTime.TotalSeconds;			
 			
 			float fontScale = 2f;
 			float Xdone = m_messageScrollTimer / MessageScrollDuration;
@@ -106,8 +106,7 @@ namespace WarGame
 			{
 				m_messageScrollTimer += timerStep;
 				m_bigMessageOffset.X = sign*m_Xratio * MathHelper.SmoothStep(0, m_bigMessageLineSize.X * 2, 0.5f * sign - Xdone * sign);
-			}	
-			
+			}				
 
 			this.spriteBatch.Draw(
 				m_phaseMessageSprite, Vector2.Zero*m_Xratio + m_bigMessageOffset,
@@ -119,17 +118,17 @@ namespace WarGame
 				m_lowerLine, atGame.ActivePlayer.TeamColor, 0f, Vector2.Zero, m_Xratio, SpriteEffects.None, 1);
 			m_bigMessageOffset.X *= -1;
 
-			/*if (m_bigMessageOffset.X > m_bigMessageLineSize.X*2){
-				DrawOverlayElement -= DrawBigMessage;
-			}				*/
-			
+			if (Xdone >= 1)
 			{
-				//m_bigMessageOffset.X += 5f;
+				ResetBigMessage();
+				Console.WriteLine("Message gone");
 			}
+			
 		}
 
 		public void ResetBigMessage()
 		{
+			IsDisplayingMessage = false;
 			DrawOverlayElement -= DrawBigMessage;
 			m_messageScrollTimer = 0;
 			m_messagePauseTimer = 0;
@@ -140,16 +139,16 @@ namespace WarGame
 			m_bigMessageOffset.X = -m_bigMessageLineSize.X;
 		}
 
-		public void DisplayMessage(BigMessages msgType, Player player=null,float scrollDuration=1.5f, float pauseDuration=1.5f)
+		public void DisplayMessage(BigMessages msgType, Player player=null,float scrollDuration=0.75f, float pauseDuration=1.0f)
 		{
 			ResetBigMessage();
-			
+			IsDisplayingMessage = true;
 			if (player == null) player = atGame.ActivePlayer;
 
 			int rowOffset = (int)msgType;
 			Console.WriteLine(rowOffset);
 
-			m_upperLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * rowOffset, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * (rowOffset));
+			m_upperLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * (rowOffset-1), (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y);
 						
 			m_lowerLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * 3, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y * 4);
 
@@ -158,6 +157,23 @@ namespace WarGame
 			MessageScrollDuration = scrollDuration;
 
 			DrawOverlayElement += DrawBigMessage;
+		}
+
+		public void DisplayMessage(ATGame.GamePhase phase, Player player = null, float scrollDuration = 0.75f, float pauseDuration = 1.0f)
+		{
+			switch (phase)
+			{
+				case (ATGame.GamePhase.GP_Dispatch):
+					DisplayMessage(ScreenOverlay.BigMessages.Dispatch,player, scrollDuration, pauseDuration); break;
+				case (ATGame.GamePhase.GP_Movement):
+					DisplayMessage(ScreenOverlay.BigMessages.Movement, player, scrollDuration, pauseDuration); break;
+				case (ATGame.GamePhase.GP_Combat):
+					DisplayMessage(ScreenOverlay.BigMessages.Combat, player, scrollDuration, pauseDuration); break;
+				default:
+					DisplayMessage(ScreenOverlay.BigMessages.Dispatch, player, scrollDuration, pauseDuration); break;
+			}
+			
+
 		}
 
 	}
