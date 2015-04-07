@@ -57,6 +57,47 @@ namespace WarGame
 				nextHex.Highlight = true;
 				m_lastRefHex.Highlight = false;
 
+				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
+				{
+
+					if (m_lastRefHex.Occupant != null)
+					{
+						foreach (Unit u in m_lastRefHex.Occupant.GetPotentialAttackers())
+						{
+							//if (!u.Freeze)
+							{
+								if ( u != atGame.ActivePlayer.SelectedUnit)
+									u.AlphaBlinkEnable = false;
+							}
+
+						}
+						
+					}
+
+
+					if (nextHex.Occupant != null)
+					{
+
+						if (nextHex.Occupant != m_lastRefHex.Occupant && nextHex.Occupant.Owner == atGame.OpposingPlayer)
+						{
+
+							foreach (Unit u in nextHex.Occupant.GetPotentialAttackers())
+							{
+								if (!u.Freeze)
+								{
+									if (!u.AlphaBlinkEnable && u != atGame.ActivePlayer.SelectedUnit)
+										u.SetAlphaBlink(1f, 0.5f, 1f, 0.33f, true);
+								}
+
+							}
+						}
+						else
+						{
+
+						}
+					}
+				}
+
 				/*if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
 				{
 
@@ -121,19 +162,22 @@ namespace WarGame
 
 		public void OnLeftMouseClick(GameTime gameTime)
 		{
-						
+			Unit clickedUnit = null;	
+			//for now, only checks for click on own units
 			{
-				
 				foreach (Unit u in atGame.ActivePlayer.OwnedUnits)
 				{
 					if (u.IsUnderCursor(m_mCurState))
 					{
 						Console.WriteLine("___click");
-						u.Select();
+						clickedUnit = u;
+						clickedUnit.Select();
 						break;
 					}
 				}
 				atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();
+				
+
 			}
 
 			Console.WriteLine("Mouse pos: "+m_mCurState.X + " " + m_mCurState.Y);
@@ -221,7 +265,7 @@ namespace WarGame
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 					if (destTile.Occupant == null && selUnit.DispatchableOnHex(destTile))
 					{
-						selUnit.StartMoveTo(destTile);
+						selUnit.StartMoveTo(destTile,false,true);
 					}
 				}
 			}
@@ -233,7 +277,7 @@ namespace WarGame
 					HexTile destTile = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 					if (destTile.Occupant == null && selUnit.ReachableHexes.Contains(destTile))
 					{
-						selUnit.StartMoveTo(destTile);
+						selUnit.StartMoveTo(destTile,true,true);
 					}
 				}
 			}
@@ -249,12 +293,22 @@ namespace WarGame
 						bool alreadyAttacking=destTile.Occupant.Attackers.Contains(selUnit);
 						bool targetLockable = (!alreadyAttacking && !selUnit.Freeze);
 
-						if (selUnit.TargetUnit(destTile.Occupant, targetLockable))
+						if (targetLockable=selUnit.TargetUnit(destTile.Occupant, targetLockable))
 						{
 							Console.WriteLine("Target Locked");
+							foreach (Unit u in destTile.Occupant.GetPotentialAttackers(selUnit))
+							{
+								targetLockable = (!alreadyAttacking && !u.Freeze && targetLockable);
+								u.TargetUnit(destTile.Occupant, targetLockable);
+							}														
 						}
-						else if (alreadyAttacking)
+						else if (alreadyAttacking){
 							Console.WriteLine("Target Unlocked");
+							foreach (Unit u in destTile.Occupant.GetPotentialAttackers())
+							{
+								u.TargetUnit(destTile.Occupant, false);
+							}		
+						}							
 						else
 							Console.WriteLine("Undefined state");
 					}

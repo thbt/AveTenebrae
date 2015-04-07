@@ -189,7 +189,7 @@ namespace WarGame
 			{
 				ResetRangeGraphics();
 				OccupiedHex.ResetGraphics();
-			}				
+			}
 
 			colorOffset = Vector4.Zero;
 
@@ -204,11 +204,11 @@ namespace WarGame
 		{
 			if (target == null) return false;
 			//recliquer sur une cible unfreeze l'unité en cours
-			if (target.Attackers.Contains(this))
+			if (target.Attackers.Contains(this) && !mark)
 			{	
 				Freeze = target.MarkTargetedBy(this, false);
 			}
-			else if (!Freeze)
+			else if (!Freeze && mark)
 			{	
 				Freeze = target.MarkTargetedBy(this, true);
 			}
@@ -310,19 +310,23 @@ namespace WarGame
 				
 		}
 
-		public void StartMoveTo(HexTile tileDest)
+		public void StartMoveTo(HexTile tileDest, bool checkForRange=false, bool checkIfFrozen=false)
 		{
-			if (Vector2.Distance(SpritePosition, OccupiedHex.SpritePosition) <= 1)
-			{
-				float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, tileDest.SpritePosition);
-				float expectedDuration = totalDist/moveSpeed;
+			bool frozenValidity = ( (!Freeze && checkIfFrozen) || !checkIfFrozen);
+			bool rangeValidity = ((checkForRange && ReachableHexes.Contains(tileDest)) || !checkForRange);
 
-				nextDestTile = tileDest;
-				ExecuteActions += MoveTo;
+			if (frozenValidity && rangeValidity)
+				if (Vector2.Distance(SpritePosition, OccupiedHex.SpritePosition) <= 1)
+				{
+					float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, tileDest.SpritePosition);
+					float expectedDuration = totalDist/moveSpeed;
+
+					nextDestTile = tileDest;
+					ExecuteActions += MoveTo;
 				
-				SetBounce(12, -1, expectedDuration/100, false, true);
+					SetBounce(12, -1, expectedDuration/100, false, true);
 				
-			}
+				}
 		
 		}
 
@@ -475,13 +479,13 @@ namespace WarGame
 		}
 
 
-		public List<Unit> GetPotentialAttackers() {
+		public List<Unit> GetPotentialAttackers(Unit filtered=null) {
 
 			Player threat = (Owner == atGame.ActivePlayer) ? atGame.OpposingPlayer : atGame.ActivePlayer;
 
 			List<Unit> threatList = new List<Unit>();
 			foreach (Unit u in threat.OwnedUnits) {
-				if (u.AttackableHexes.Contains(OccupiedHex))
+				if (u.AttackableHexes.Contains(OccupiedHex) && u != filtered)
 					threatList.Add(u);
 			}
 
