@@ -240,7 +240,7 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F5) && m_kbLastState.IsKeyUp(Keys.F5)
 				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Heavy) < atGame.nbHeavies)
 			{
-				Console.WriteLine(atGame.ActivePlayer.OwnedUnits.Count);
+				
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
 				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
 				if (unit.DispatchableOnHex(hex))
@@ -269,5 +269,22 @@ namespace WarGame
 					unit.Dispose();
 			}
 		}
+
+        private void CombatKeyboardInput(GameTime gameTime)
+        {
+            //confirm attacks
+            if (m_kbCurState.IsKeyDown(Keys.A) && m_kbLastState.IsKeyUp(Keys.A)
+                && atGame.ActivePlayer.OwnedUnits.Count(u => u is Heavy) < atGame.nbHeavies)
+            {
+                Console.WriteLine(atGame.ActivePlayer.OwnedUnits.Count);
+                HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
+                Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+                if (unit.DispatchableOnHex(hex))
+                    unit.DispatchOnHex(hex);
+                else
+                    unit.Dispose();
+            }
+
+        }
 	}
 }

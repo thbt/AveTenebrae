@@ -94,6 +94,7 @@
     <Compile Include="ResourceManager.cs" />
     <Compile Include="ScreenOverlay.cs" />
     <Compile Include="TeamColors.cs" />
+    <Compile Include="UnitContextInfo.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="UnitSubclasses.cs" />
   </ItemGroup>

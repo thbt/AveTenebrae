@@ -42,7 +42,7 @@ namespace WarGame
 			: base(game)
 		{
 			atGame.Components.Add(this);
-			this.DrawOrder = int.MaxValue;
+			this.DrawOrder = int.MaxValue-10;
 			// TODO: Construct any child components here
 		}
 

@@ -44,6 +44,29 @@ namespace WarGame
 
 		}
 
+		public override void HighlightAttackRange(bool highlight = true)
+		{
+			base.HighlightAttackRange(highlight);
+			List<HexTile> meleeRange = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, 1, false);
+
+			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
+
+			foreach (HexTile h in meleeRange)
+			{
+				h.ColorBlinkEnable = false;
+				List<Color> reverse = h.TeamColorBlink(atGame.OpposingPlayer, new Color(0.25f, 0.25f, 0.25f, 0.5f));
+				h.colorMultiplier.W = -0.5f;
+				h.ColorBlinkEnable = true; //retirer le precedent blink pour eviter la superposition des effets
+				//h.AlphaBlinkEnable = true;
+				//h.colorOffset = new Vector4(-0.725f, -0.725f, -0.75f, 0.5f);
+				//h.colorMultiplier = new Vector4(0.25f, 0.25f,0.25f, 1f);
+				//h.SetHighlighted(highlight);
+			}
+
+			OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.25f);
+
+		}	
+
 	}
 
 	public class Sniper : Unit

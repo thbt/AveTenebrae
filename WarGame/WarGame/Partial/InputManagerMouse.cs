@@ -128,7 +128,9 @@ namespace WarGame
 				{
 					if (u.IsUnderCursor(m_mCurState))
 					{
+						Console.WriteLine("___click");
 						u.Select();
+						break;
 					}
 				}
 				atGame.GameBoard.GetHexAtCoordinates(m_mPosition).Select();

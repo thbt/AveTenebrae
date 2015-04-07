@@ -26,7 +26,7 @@ namespace WarGame
 			position = new Vector2(Mouse.GetState().X,Mouse.GetState().Y);
 			atGame.Components.Add(this);
 
-			this.DrawOrder = 999;
+			this.DrawOrder = int.MaxValue - 5;
 		}
 
 		/// <summary>

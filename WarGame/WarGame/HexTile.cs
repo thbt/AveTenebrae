@@ -210,10 +210,12 @@ namespace WarGame {
 		}
 		public void Select()
 		{
-
 			atGame.ActivePlayer.SelectedHex = this;
+			Unit prev = atGame.ActivePlayer.SelectedHex.Occupant;			
 
-			if (atGame.ActivePlayer.SelectedHex.Occupant != null && atGame.ActivePlayer.SelectedHex.Occupant.Owner == atGame.ActivePlayer)
+			if (prev != null
+				&& atGame.ActivePlayer != prev.Owner
+				&& atGame.ActivePlayer.SelectedHex.Occupant.Owner == atGame.ActivePlayer)
 			{
 				atGame.ActivePlayer.SelectedHex.Occupant.Select();
 			}

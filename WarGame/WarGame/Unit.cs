@@ -41,6 +41,7 @@ namespace WarGame
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		
         public Player Owner { get; protected set; }
+		public UnitContextInfo InfoPopup { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
 		public virtual List<HexTile> ReachableHexes	{
@@ -64,9 +65,10 @@ namespace WarGame
 			set {
 				if (!m_freeze && value)
 			{
-				AlphaBlinkEnable = false; Console.WriteLine("Freezing unit");
-				ResetRangeGraphics();
+				AlphaBlinkEnable = false; Console.WriteLine("Freezing unit");	
 				DrawFX += DrawFrozen;
+				if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
+					ResetRangeGraphics();
 			}
 				else if (!value)
 			{
@@ -88,6 +90,7 @@ namespace WarGame
 			atGame.Components.Add(this);
 			Attackers = new HashSet<Unit>();
 			ExecuteActions += delegate(GameTime gameTime) { };
+			InfoPopup = new UnitContextInfo(game, this);
 			//ReachableHexes = new List<HexTile>();
 			//AttackableHexes = new List<HexTile>();
 		}
@@ -144,32 +147,35 @@ namespace WarGame
 				
 		public void Select()
 		{
+			Unit prev = atGame.ActivePlayer.SelectedUnit;
+			atGame.ActivePlayer.SelectedUnit = this;
 
-			if (atGame.ActivePlayer.SelectedUnit != null)
+			//deselectionner la precedente unité
+			if (prev != null)
 			{
-				atGame.ActivePlayer.SelectedUnit.ResetRangeGraphics();
-				atGame.ActivePlayer.SelectedUnit.UnSelect();
-			}
-				
+				if ( atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch )
+					prev.ResetRangeGraphics();
 
-			if (! (this == atGame.ActivePlayer.SelectedUnit))
+				prev.UnSelect();
+			}
+
+
+			if (this != prev &&  atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 				ResetRangeGraphics();
 
-			atGame.ActivePlayer.SelectedUnit = this;
-						
+			
 			if (this == atGame.ActivePlayer.SelectedUnit)
 			{
-				
+				this.InfoPopup.Show();
+
 				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
 					this.HighlightMovementRange();
 				else
 					if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
 						this.HighlightAttackRange();
 			}
-
-			
+						
 			this.SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
-
 		}
 
 		public void UnSelect()
@@ -180,15 +186,18 @@ namespace WarGame
 			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
 
 			if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
+			{
+				ResetRangeGraphics();
 				OccupiedHex.ResetGraphics();
+			}				
 
 			colorOffset = Vector4.Zero;
 
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
 			ColorBlinkEnable = false;
-
-			ResetRangeGraphics();
+			this.InfoPopup.Hide();
+			
 		}
 
 		public bool TargetUnit(Unit target, bool mark)
@@ -271,26 +280,25 @@ namespace WarGame
 			Owner.OwnedUnits.Add(this);
 			Console.WriteLine(unitClass+" Spawned");
 		}
-
-
 		public void MoveTo(GameTime gameTime)
 		{
 			//(float)gameTime.ElapsedGameTime.TotalSeconds * moveSpeed
 			//float remDist = Vector2.Distance(nextDest, sprOrigin - atGame.Panning) / Vector2.Distance(OccupiedHex.SpritePosition, sprOrigin - atGame.Panning);
-			//
 
 			nextDest = nextDestTile.SpritePosition;
 			float totalDist = Vector2.Distance(OccupiedHex.SpritePosition, nextDest);
 			
 			sprOrigin += (nextDest - OccupiedHex.SpritePosition) * moveSpeed / totalDist;
 
-			//sprOrigin = Vector2.SmoothStep(SpritePosition, nextDest, Vector2.Distance(SpritePosition, nextDest)/totalDist);
-
 			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
 			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
 			{
-				HexTile.ResetGraphics(ReachableHexes, true);
-				OccupiedHex.ResetGraphics(true);
+				if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
+				{
+					HexTile.ResetGraphics(ReachableHexes, true);
+					OccupiedHex.ResetGraphics(true);
+				}
+
 
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
@@ -464,6 +472,20 @@ namespace WarGame
 
 			coloredSpriteSheet.SetData(pixels);
 
+		}
+
+
+		public List<Unit> GetPotentialAttackers() {
+
+			Player threat = (Owner == atGame.ActivePlayer) ? atGame.OpposingPlayer : atGame.ActivePlayer;
+
+			List<Unit> threatList = new List<Unit>();
+			foreach (Unit u in threat.OwnedUnits) {
+				if (u.AttackableHexes.Contains(OccupiedHex))
+					threatList.Add(u);
+			}
+
+			return threatList;
 		}
 
 		public bool IsUnderCursor(MouseState mouseState)
