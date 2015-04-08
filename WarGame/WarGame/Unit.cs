@@ -251,7 +251,7 @@ namespace WarGame
 						DrawFX = delegate { };
 						Owner.OwnedUnits.Remove(this);
 						Attackers.Clear();
-
+						OccupiedHex.Occupant = null;
 						this.Visible = false;
 					}
 				};
@@ -268,11 +268,11 @@ namespace WarGame
 			//recliquer sur une cible unfreeze l'unité en cours
 			if (target.Attackers.Contains(this) && !mark)
 			{	
-				Freeze = target.MarkTargetedBy(this, false);
+				this.Freeze = target.MarkTargetedBy(this, false);
 			}
 			else if (!Freeze && mark)
 			{	
-				Freeze = target.MarkTargetedBy(this, true);
+				this.Freeze = target.MarkTargetedBy(this, true);
 			}
 			return target.Attackers.Contains(this);
 		}

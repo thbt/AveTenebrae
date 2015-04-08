@@ -324,7 +324,9 @@ namespace WarGame
 
 		internal void DisplayEasterEgg()
 		{
+
 			m_sndToasty.Play();
+
 		}
 	}
 }

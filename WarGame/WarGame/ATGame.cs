@@ -21,7 +21,7 @@ namespace WarGame {
 
 		
 		public ScreenOverlay Overlay { get; private set; }
-		public int nbArchers = 1, nbHeavyKnights = 1, nbCavalry = 1;
+		public int nbArchers = 3, nbHeavyKnights = 3, nbCavalry = 3;
 		public static bool DEBUG_MODE { get; set; }
 
 		GraphicsDeviceManager graphics;
@@ -354,13 +354,28 @@ namespace WarGame {
 				if (m_genericTimer1 >= killDelay)
 				{
 					HashSet<Unit> helpers=new HashSet<Unit>();
-					//m_targetedUnits.
+					HashSet<Unit> atkers = new HashSet<Unit>();
+					foreach (Unit hu in OpposingPlayer.OwnedUnits)
+					{
+						foreach (Unit atk in u.Attackers)
+						{
+							atkers.Add(atk);
+							if (hu.AttackableHexes.Contains(atk.OccupiedHex))
+								helpers.Add(hu);
+						}						
+					}
+
+					int dmgA, dmgB;
+					Console.WriteLine("Targeted ----\n"+m_targetedUnits.Count);
+					Console.WriteLine("Helpers ----\n" + helpers.Count);
+					Console.WriteLine("Attackers ----\n" + atkers.Count);
 
 					m_genericTimer1 = 0;
 					if (u.Enabled)
 					{
 						u.HitSound.Play();
 						u.Kill();
+						foreach (Unit h in helpers) h.Kill();
 					}
 					else if (!u.Visible)
 					{
@@ -372,13 +387,12 @@ namespace WarGame {
 				else if ( m_genericTimer2 > attackdelay && !m_attackPlayed )
 				{
 					m_attackPlayed = true;
-					int dmgA, dmgB;
 
 					foreach (Unit au in u.Attackers.Reverse()) { 
 						au.AttackSound.Play(); }
 					m_genericTimer2 = 0;
 				}
-				else
+				else// if (m_phaseChangeTimer > 0)
 				{
 					//ResetTimers();
 				}
@@ -397,7 +411,7 @@ namespace WarGame {
 					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
 					Console.WriteLine("Combat phase finished");
 				}
-				else
+				else if (m_phaseChangeTimer > 2f)
 				{
 					LaunchGameOver();
 				}
@@ -410,9 +424,13 @@ namespace WarGame {
 			
 			if ((int)m_phaseChangeTimer == 10)
 			{
-				m_phaseChangeTimer = float.PositiveInfinity;
+				m_phaseChangeTimer++;
 				Overlay.DisplayEasterEgg();
+			}
+			else if ((int)m_phaseChangeTimer == 15){
 				m_currentPhaseLogic = delegate { };
+				m_phaseChangeTimer = float.PositiveInfinity;
+				this.Exit();
 			}
 		}
 
@@ -423,7 +441,8 @@ namespace WarGame {
 			Console.WriteLine("Game over");
 			foreach (Unit u in Components.OfType<Unit>())
 			{
-				u.Kill();
+				u.Freeze = false;
+				u.SetBounce(24, -1, 0.8f+0.4f*(float)ResourceManager.Random.NextDouble(), false, true);
 			}
 			CurrentPhase = GamePhase.GP_GameOver;			
 			Overlay.DisplayMessage(ATGame.GamePhase.GP_GameOver, null, 1f, float.PositiveInfinity);
