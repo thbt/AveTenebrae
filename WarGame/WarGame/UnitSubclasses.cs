@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,16 +23,15 @@ namespace WarGame
 			//spriteSheet_path = "icon_sheet";
 			base.LoadContent();
 			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
-
+			AttackSound = Game.Content.Load<SoundEffect>("SwordSweesh");
 		}
-
-
+		
 	}
 
 	public class Cavalry : Unit
 	{
 		public Cavalry(ATGame game, Player owner)
-			: base(game, owner, 5, 2, 2, 0)
+			: base(game, owner, 5, 2, 2, 1)
 		{
 			drawArea = new Rectangle(iconSize, 0, iconSize, iconSize);
 		}
@@ -40,10 +40,15 @@ namespace WarGame
 		{
 			//spriteSheet_path = "units_cavalry";
 			base.LoadContent();
-			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
-
+			AttackSound = Game.Content.Load<SoundEffect>("SpearThrow");
+			
 		}
+		public override int EvaluateContextDamage(Unit target)
+		{
 
+			if (!atGame.GameBoard.GetNeighboursRanged(OccupiedHex, 1, false).Contains(target.OccupiedHex)) return TotalAttack;
+			return TotalRangedAttack;
+		}
 		public override void HighlightAttackRange(bool highlight = true,bool isSecondaryRange=true)
 		{
 			base.HighlightAttackRange(highlight,true);
@@ -88,8 +93,15 @@ namespace WarGame
 		{
 			//spriteSheet_path = "units_archer";
 			base.LoadContent();
-			//spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
+			AttackSound = Game.Content.Load<SoundEffect>("BowFire02");
+	
+		}
 
+		public override int EvaluateContextDamage(Unit target)
+		{
+
+			if (atGame.GameBoard.GetNeighboursRanged(OccupiedHex, 1, false).Contains(target.OccupiedHex)) return TotalAttack;
+			return TotalRangedAttack;
 		}
 
 		public override void HighlightAttackRange(bool highlight = true, bool isSecondaryRange=true)

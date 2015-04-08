@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using AStar;
+using System.Threading;
 
 
 
@@ -35,6 +36,13 @@ namespace WarGame {
 		public Player PlayerB { get; private set;}
 		public Player ActivePlayer;
 		public Player OpposingPlayer;
+
+		private float m_genericTimer1 = 0f;
+		private float m_genericTimer2 = 0f;
+		private float m_genericTimer3 = 0f;
+
+		private HashSet<Unit> m_targetedUnits = new HashSet<Unit>();
+		private bool m_attackPlayed=false;
 
 		private float m_phaseChangeTimer = 0;
 
@@ -127,9 +135,13 @@ namespace WarGame {
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update(GameTime gameTime) {
 			// Allows the game to exit
-			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
+				|| Keyboard.GetState().IsKeyDown(Keys.Escape) )
 				this.Exit();
 
+			m_genericTimer1 = (m_genericTimer1+(float)gameTime.ElapsedGameTime.TotalSeconds)%float.MaxValue;
+			m_genericTimer2 = (m_genericTimer2 + (float)gameTime.ElapsedGameTime.TotalSeconds) % float.MaxValue;
+			m_genericTimer3 = (m_genericTimer3+ (float)gameTime.ElapsedGameTime.TotalSeconds) % float.MaxValue;
 			// TODO: Add your update logic here
 			
 			m_currentPhaseLogic(gameTime);
@@ -150,8 +162,18 @@ namespace WarGame {
 			spriteBatch.End();
 		}
 
+		public void ResetTimers(float phase = 0, float generic1 = 0, float generic2 = 0, float generic3 = 0)
+		{
+			m_phaseChangeTimer = phase;
+			m_genericTimer1 = generic1;
+			m_genericTimer2 = generic2;
+			m_genericTimer3 = generic3;
+
+		}
+
 		public void SwapPlayerTurns()
 		{
+
 			if (ActivePlayer.SelectedUnit!=null)
 				ActivePlayer.SelectedUnit.UnSelect();
 			if (ActivePlayer.SelectedHex != null)
@@ -238,8 +260,8 @@ namespace WarGame {
 						h.SetHighlighted(false);
 						h.ResetGraphics(true);
 					}
+					ResetTimers();
 
-					m_phaseChangeTimer = 0;
 					Console.WriteLine("Dispatch phase finished");
 					m_currentPhaseLogic -= DispatchPhase;
 					SwapPlayerTurns();
@@ -285,46 +307,107 @@ namespace WarGame {
 
 
 		private void CombatPhase(GameTime gameTime)
-		{
+		{			
 			
-			//quand terminée, lancer la MovementPhase pour l'autre équipe
 			int nbFrozenUnits = ActivePlayer.OwnedUnits.Count(u => u.Freeze == true);			
-
+			//quand terminée, lancer la MovementPhase pour l'autre équipe
 			if (nbFrozenUnits >= ActivePlayer.OwnedUnits.Count)
 			{
-				GameBoard.ExecuteBattle();
+				if (ActivePlayer.SelectedUnit != null)
+					ActivePlayer.SelectedUnit.UnSelect();
 
-				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
+				if ( (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
 				{
-					m_phaseChangeTimer = 0;
-					SwapPlayerTurns();
-					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
+					m_targetedUnits.Clear();
+					foreach (Unit u in OpposingPlayer.OwnedUnits)
+						if (u.Attackers.Count > 0)
+						{
+							m_targetedUnits.Add(u);							
+						}
 
-					if (ActivePlayer.OwnedUnits.Count > 0 && OpposingPlayer.OwnedUnits.Count > 0)
-					{
-						CurrentPhase = GamePhase.GP_Movement;
-						m_currentPhaseLogic = MovementPhase;
-						Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
-						Console.WriteLine("Combat phase finished");
-					}
-					else
-					{
-						CurrentPhase = GamePhase.GP_GameOver;
-						m_currentPhaseLogic = GameOverPhase;
-						LaunchGameOver();
-						
-					}
+					ResetTimers();
+					Console.WriteLine("Goto Execute Battle");
+					m_currentPhaseLogic=ExecuteBattle;
+				}
+			}			
+		}
 
+		/// <summary>
+		/// Une fois toutes les unités fixées sur une action, déroulement animé du combat
+		/// </summary>
+		/// <returns>true quand le combat est fini</returns>
+		private void ExecuteBattle(GameTime gameTime)
+		{
+			if (ActivePlayer.SelectedUnit != null)			
+				ActivePlayer.SelectedUnit.UnSelect();
+
+			HexTile.ResetGraphics(GameBoard.GetTileList(), true);
+			float killDelay = 0.75f;
+			float attackdelay = 0.35f;
+			float ms = 1000;
+
+			//s'il y a des unités engagées en combat
+			if (m_targetedUnits.Count > 0){
+				Unit u = m_targetedUnits.Reverse().ElementAt(0);
+
+				//si les sons d'attaques ont été joués et les scores ont calculés, tuer/reculer les unités perdantes
+				if (m_genericTimer1 >= killDelay)
+				{
+					HashSet<Unit> helpers=new HashSet<Unit>();
+					//m_targetedUnits.
+
+					m_genericTimer1 = 0;
+					if (u.Enabled)
+					{
+						u.HitSound.Play();
+						u.Kill();
+					}
+					else if (!u.Visible)
+					{
+						m_targetedUnits.Remove(u);
+						m_attackPlayed = false;
+					}					
+				}
+				//sinon jouer les sons d'attaque apres un delai 'cosmetique'
+				else if ( m_genericTimer2 > attackdelay && !m_attackPlayed )
+				{
+					m_attackPlayed = true;
+					int dmgA, dmgB;
+
+					foreach (Unit au in u.Attackers.Reverse()) { 
+						au.AttackSound.Play(); }
+					m_genericTimer2 = 0;
+				}
+				else
+				{
+					//ResetTimers();
 				}
 
 			}
-			
+
+			//conditions d'arret de la phase
+			if (m_targetedUnits.Count == 0 && (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
+			{
+				if (ActivePlayer.OwnedUnits.Count > 0
+					&& OpposingPlayer.OwnedUnits.Count > 0)
+				{
+					SwapPlayerTurns();
+					CurrentPhase = GamePhase.GP_Movement;
+					m_currentPhaseLogic = MovementPhase;
+					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
+					Console.WriteLine("Combat phase finished");
+				}
+				else
+				{
+					LaunchGameOver();
+				}
+			}
 		}
 
 		private void GameOverPhase(GameTime gameTime)
 		{
 			m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			Console.WriteLine("Game over");
+			
 			if ((int)m_phaseChangeTimer == 10)
 			{
 				m_phaseChangeTimer = float.PositiveInfinity;
@@ -335,12 +418,14 @@ namespace WarGame {
 
 		public void LaunchGameOver()
 		{
+			m_phaseChangeTimer = 0;
+			m_currentPhaseLogic = GameOverPhase;
+			Console.WriteLine("Game over");
 			foreach (Unit u in Components.OfType<Unit>())
 			{
 				u.Kill();
 			}
-			CurrentPhase = GamePhase.GP_GameOver;
-			m_currentPhaseLogic = GameOverPhase;
+			CurrentPhase = GamePhase.GP_GameOver;			
 			Overlay.DisplayMessage(ATGame.GamePhase.GP_GameOver, null, 1f, float.PositiveInfinity);
 		}
 	}

@@ -61,14 +61,16 @@ namespace WarGame
 			ExecuteActions += delegate { };
 			DrawAnimation = delegate { };
 
-
 		}
 
 		public UnitContextInfo(ATGame game, Unit unit)
 			: this(game)
 		{
 
-			LinkedUnit = unit;			
+			LinkedUnit = unit;
+			DrawOrder = LinkedUnit.DrawOrder + 1;
+
+
 
 			// TODO: Construct any child components here
 
@@ -113,25 +115,38 @@ namespace WarGame
 			
 		}
 				
-		public void Show()
+		public void Show(float duration=0.17f)
 		{
-			animTimer = 0;
-			animSprAlpha = 0f;
-			animSprScale = 1f;
-			animDuration = 0.25f;
-			Enabled = true;
-			Visible = true;
-			PaletteSwap(LinkedUnit.Owner.TeamColor);
-			Console.WriteLine("Show info");
-			DrawAnimation = DrawGrow;
+			if (LinkedUnit.Owner == atGame.ActivePlayer )
+			{
+				animTimer = 0;
+				animSprAlpha = 0f;
+				animSprScale = 1f;
+				animDuration = duration;
+				Enabled = true;
+				Visible = true;
+				PaletteSwap(LinkedUnit.Owner.TeamColor);
+				Console.WriteLine("Show info");
+				DrawAnimation = DrawGrow;
 			
+			}
+
 		}
 
-		public void Hide()
+		public void Hide(float duration=0.33f)
 		{
-			animDuration = 0.75f;
-			animTimer = 0;
-			DrawAnimation = DrawShrink;
+			if (duration > 0)
+			{
+				animDuration = duration;
+				animTimer = 0;
+				DrawAnimation = DrawShrink;
+			}
+			else
+			{
+				Enabled = false;
+				Visible = false;
+			}
+
 
 		}
 	
@@ -189,6 +204,7 @@ namespace WarGame
 				Visible = false;
 				Enabled = false;
 				DrawAnimation = delegate { };
+				Console.WriteLine("Info fully closed");
 			}
 
 		}
@@ -205,16 +221,26 @@ namespace WarGame
 
 			float fontScale = 1.25f;
 			float XoffsetMult=4.75f;
-			//atk power
-			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.Strength.ToString(),
-				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1); 
+			Color final;
+			Color normal = Color.LightGreen;
+			Color bonus = Color.Gold;
+			
+			//atk power			
+			final = (LinkedUnit.TotalAttack == LinkedUnit.BaseStrength) ? normal : bonus;
+			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.TotalAttack.ToString(),
+				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), final * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1); 
 			//movement points
+			final = normal;
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.MovementPoints.ToString(),
-				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
-			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.RangedStrength.ToString(),
-				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), final * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+			//ranged atk
+			final = (LinkedUnit.TotalRangedAttack == LinkedUnit.RangedStrength) ? normal : bonus;
+			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.TotalRangedAttack.ToString(),
+				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), final * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+			//range
+			final = normal;
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.Range.ToString(),
-				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), final * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
 
 		}
 
@@ -241,8 +267,6 @@ namespace WarGame
 					pix.B = (byte)((pix.B*targetColor.B) / 256f);
 
 				}
-				/*else
-					pix.A = 0;*/
 
 				pix.A = a;
 				pixels[p] = pix;

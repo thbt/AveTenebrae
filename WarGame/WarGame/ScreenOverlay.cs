@@ -18,7 +18,7 @@ namespace WarGame
 	public class ScreenOverlay : ATDrawableComponent
 	{
 		public bool IsDisplayingMessage { get; protected set; }
-		public enum BigMessages { Dispatch=1, Movement=2, Combat=3, GameOver=4 };
+		public enum BigMessages { Dispatch=1, Movement=2, Combat=3, GameOver=5 };
 		private BigMessages m_bigMessageType=BigMessages.Dispatch;
 		private SpriteFont m_bigFont;
 
@@ -117,30 +117,63 @@ namespace WarGame
 			spriteBatch.Draw(m_topPanelBG, TopPanelArea, Color.Black * 0.25f);
 			Vector2 slotSize = new Vector2(TopPanelArea.Width/4,TopPanelArea.Height/2);
 			Vector2 textOffset = new Vector2(16, slotSize.Y / 16);
-
 			int row = 0, col = 0;
-			this.spriteBatch.DrawString(ResourceManager.font, "F5:\n Place Infantry", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+			if (atGame.CurrentPhase == ATGame.GamePhase.GP_Dispatch)
+			{
 
-			row = 1; col = 0;
-			this.spriteBatch.DrawString(ResourceManager.font, "F6:\n Place Cavalry", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+				this.spriteBatch.DrawString(ResourceManager.font, "F5:\n Place Infantry", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
 
-			row = 0; col = 1;
-			this.spriteBatch.DrawString(ResourceManager.font, "F7:\n Place Archer", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+				row = 1; col = 0;
+				this.spriteBatch.DrawString(ResourceManager.font, "F6:\n Place Cavalry", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
 
-			row = 1; col = 1;
-			this.spriteBatch.DrawString(ResourceManager.font, "Right-click on hex:\n Move selected unit there", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+				row = 0; col = 1;
+				this.spriteBatch.DrawString(ResourceManager.font, "F7:\n Place Archer", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
 
-			row = 0; col = 2;
-			this.spriteBatch.DrawString(ResourceManager.font, "END:\n End unit turn", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+				row = 1; col = 1;
+				this.spriteBatch.DrawString(ResourceManager.font, "Right-click on hex:\n Move selected unit there", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+	
+			}
+			else if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
+			{
 
-			row = 1; col = 2;
-			this.spriteBatch.DrawString(ResourceManager.font, "Space:\n End all unit turns", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
-				atGame.ActivePlayer.TeamColor);
+				row = 0; col = 1;
+				this.spriteBatch.DrawString(ResourceManager.font, "Placeholder: \n Lorem Ipsum", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+
+				row = 1; col = 1;
+				this.spriteBatch.DrawString(ResourceManager.font, "Right-click on enemy:\n Lock target", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+			}
+			else if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
+			{
+				row = 1; col = 1;
+				this.spriteBatch.DrawString(ResourceManager.font, "Right-click on hex:\n Move selected unit there", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+			}
+			if (atGame.CurrentPhase != ATGame.GamePhase.GP_GameOver)
+			{
+				row = 0; col = 2;
+				this.spriteBatch.DrawString(ResourceManager.font, "END:\n End unit turn", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+
+				row = 1; col = 2;
+				this.spriteBatch.DrawString(ResourceManager.font, "Space:\n End all unit turns", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+
+				row = 0; col = 3;
+				this.spriteBatch.DrawString(ResourceManager.font, "Arrows/Mouse-middle:\n Panning", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+
+				row = 1; col = 3;
+				this.spriteBatch.DrawString(ResourceManager.font, "Escape:\n Close", new Vector2(slotSize.X * col, slotSize.Y * row) + textOffset,
+					atGame.ActivePlayer.TeamColor);
+			}
+
+
 		}
 
 		private void DrawBigMessage(GameTime gameTime)
@@ -188,7 +221,7 @@ namespace WarGame
 
 		public void ResetBigMessage()
 		{
-
+			m_Xdone = 0f;
 			IsDisplayingMessage = false;
 			DrawOverlayElement -= DrawBigMessage;
 			m_messageScrollTimer = 0;
@@ -200,7 +233,7 @@ namespace WarGame
 			m_bigMessageOffset.X = -m_bigMessageLineSize.X;
 
 			m_sndTimer = 0f;
-			m_sndStartDelay = 0f;
+			m_sndStartDelay = 0.05f;
 		}
 
 		public void DisplayMessage(BigMessages msgType, Player referencePlayer=null,float scrollDuration=0.75f, float pauseDuration=1.0f)
@@ -212,9 +245,9 @@ namespace WarGame
 			IsDisplayingMessage = true;
 			if (referencePlayer == null) referencePlayer = atGame.ActivePlayer;
 
-			int rowOffset = (int)msgType%3;
+			int rowOffset = (int)msgType%4;
 
-			m_sndSwoosh.Play(0.5f,0.1f,0f);
+			m_sndSwoosh.Play(0.125f,0.85f,0f);
 
 			if (msgType != BigMessages.GameOver)
 			{
@@ -226,10 +259,10 @@ namespace WarGame
 				
 				UpdateActions = delegate(GameTime gameTime)
 				{
-					if (m_Xdone > 0.51f && (int)m_bigMessageOffset.X != 0)
+					if (m_Xdone > 0.52f && (int)m_bigMessageOffset.X != 0)
 					{
 						Console.WriteLine("phase");
-						m_sndSwoosh.Play(0.5f, 0.1f, 0f);
+						m_sndSwoosh.Play(0.125f, 0.85f, 0f);
 						UpdateActions = delegate { };
 					}
 
@@ -245,7 +278,7 @@ namespace WarGame
 				m_upperLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * (rowOffset - 1), (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y);
 				m_lowerLine = new Rectangle(0, (int)m_bigMessageLineSize.Y * 1, (int)m_bigMessageLineSize.X, (int)m_bigMessageLineSize.Y);
 
-				m_sndTimer = 0f;
+				
 				m_sndStartDelay = 1.25f;
 
 				UpdateActions = delegate(GameTime gameTime)

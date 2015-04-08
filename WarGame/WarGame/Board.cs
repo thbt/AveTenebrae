@@ -46,7 +46,10 @@ namespace WarGame {
 			for (int y=0; y<tmpMap.GetLength(0); y++)
 				for (int x=0; x < tmpMap.GetLength(1); x++)
 				{
-					tmpMap[y, x] = (int)ResourceManager.Random.Next(2, 7)/2;
+					int random = (int)ResourceManager.Random.Next(0, 101);
+					if (random < 70) tmpMap[y, x] = p;
+					else if (random < 90) tmpMap[y, x] = f;
+					else tmpMap[y, x] = h;
 				
 				}
 
@@ -303,15 +306,5 @@ namespace WarGame {
 
 		}
 
-		public void ExecuteBattle()
-		{
-			foreach (Unit u in atGame.OpposingPlayer.OwnedUnits)
-			{
-				if (u.Attackers.Count > 0)
-				{
-					u.Kill();
-				}
-			}
-		}
 	}
 }

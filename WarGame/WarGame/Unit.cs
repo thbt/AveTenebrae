@@ -41,6 +41,11 @@ namespace WarGame
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
 		
         public Player Owner { get; protected set; }
+
+		public SoundEffect ScreamSound { get; protected set; }
+		public SoundEffect AttackSound { get; protected set; }
+		public SoundEffect DrawWeaponSound { get; protected set; }
+		public SoundEffect HitSound { get; protected set; }
 		public UnitContextInfo InfoPopup { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
@@ -54,11 +59,16 @@ namespace WarGame
 
 		public HashSet<Unit> Attackers { get; protected set; }
 
-		public int MovementPoints;
+		public int MovementPoints {get; protected set;}
 		public readonly int Movement;		
-		public readonly int Strength;
+		public readonly int BaseStrength;
+		public int HealthPoints { get; protected set; }
 		public readonly int Range;
 		public readonly int RangedStrength;
+
+		public int TotalRangedAttack { get { return RangedStrength + OccupiedHex.atkBonus; } }
+		public int TotalAttack { get { return BaseStrength + OccupiedHex.atkBonus; } }
+		public int TotalDefense { get { return BaseStrength + OccupiedHex.defBonus; } }
 
 		protected bool m_freeze = false;
 		public bool Freeze { get { return m_freeze; } 
@@ -102,7 +112,8 @@ namespace WarGame
 			this.Visible = false;
 			MovementPoints=move;
 			Movement = move;
-			Strength=str;
+			BaseStrength=str;
+			HealthPoints = str;
 			Range=range;
 			RangedStrength=rangedStr;
 			Owner = owner;
@@ -127,6 +138,10 @@ namespace WarGame
 			spriteSheet_path = "icon_sheet";
 			spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 			coloredSpriteSheet = spriteSheet;
+
+			HitSound = Game.Content.Load<SoundEffect>("Stab");
+			ScreamSound = Game.Content.Load<SoundEffect>("Wilhelm_Scream");
+			//m_sndAttack;
 			
 			base.LoadContent();			
 		}
@@ -161,11 +176,9 @@ namespace WarGame
 
 				prev.UnSelect();
 			}
-
-
+			
 			if (this != prev &&  atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 				ResetRangeGraphics();
-
 
 			if (Enabled && this == atGame.ActivePlayer.SelectedUnit)
 			{
@@ -186,10 +199,6 @@ namespace WarGame
 		public void UnSelect()
 		{
 
-			
-			//List<HexTile> reachablePlaces = atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.MovementPoints);
-			//OccupiedHexm_lastRefHex.colorOffset = new Vector4(0f, 0f, 0f, 0f);
-
 			if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 			{
 				ResetRangeGraphics();
@@ -205,34 +214,51 @@ namespace WarGame
 			//atGame.ActivePlayer.SelectedUnit = null;
 		}
 
-		public void Kill()
+		public virtual int EvaluateContextDamage(Unit target)
 		{
-			UnSelect();
+			return TotalAttack;
+		}
 
-			atGame.ActivePlayer.SelectedUnit = null;
-			
-			this.ResetGraphics();
-
-			blinkTimer = 0;
-			blinkAlpha = 1f;
-			blinkDuration = 2f;			
-			
-			DrawFX = delegate(GameTime gameTime)
+		public void Kill(bool silentDeath=false)
+		{
+			this.InfoPopup.Hide();
+			Console.WriteLine(this.ThreatsToString());
+			if (Enabled)
 			{
-				blinkTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-				blinkAlpha = MathHelper.SmoothStep(1,-0.1f,(blinkTimer / blinkDuration));
-				finalColor *= blinkAlpha;
+				if (!silentDeath)
+					ScreamSound.Play();
 
-				if (blinkAlpha < 0)
+				colorOffset = new Color(2f,2f,2f).ToVector4();
+				InfoPopup.Hide(-1);
+				UnSelect();
+				Console.WriteLine("Killed unit: " + this);
+				atGame.ActivePlayer.SelectedUnit = null;
+								
+				this.ResetGraphics();
+
+				blinkTimer = 0;
+				blinkAlpha = 1f;
+				blinkDuration = 2f;
+
+				DrawFX = delegate(GameTime gameTime)
 				{
-					DrawFX = delegate { };
-					Owner.OwnedUnits.Remove(this);
-					
-					this.Visible = false;
-				}
-			};
+					blinkTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+					blinkAlpha = MathHelper.SmoothStep(1, -0.1f, (blinkTimer / blinkDuration));
+					finalColor *= blinkAlpha;
 
-			this.Enabled = false;
+					if (blinkAlpha <= 0)
+					{
+						DrawFX = delegate { };
+						Owner.OwnedUnits.Remove(this);
+						Attackers.Clear();
+
+						this.Visible = false;
+					}
+				};
+
+				this.Enabled = false;
+			}
+			else Console.WriteLine("Can't kill unit: " + this + "\nAlready dead!");
 			
 		}
 
@@ -273,12 +299,16 @@ namespace WarGame
 				{
 					ColorBlinkEnable = false;
 					Attackers.Remove(attacker);
+					/*
+					foreach (Unit u in Attackers) u.Freeze = false;
+					Attackers.Clear();*/
 				}
 					
 			}
-
+			Console.WriteLine(this.ThreatsToString());
 			return Attackers.Contains(attacker);
 		}
+
 
 		public void PutOnHex(HexTile hex)
 		{
@@ -552,7 +582,18 @@ namespace WarGame
 			foreach (Unit u in resetList)
 				u.ResetGraphics();
 		}
-
+		public string ToString()
+		{
+			return this.GetType().Name+" of "+Owner.Name+" Team\n";
+		}
+		public string ThreatsToString()
+		{
+			string str=this.GetType().Name+" has "+Attackers.Count+" attackers: \n";
+			foreach (Unit u in Attackers){
+				str+=u.ToString();
+			}
+			return str;
+		}
 
 	}
 

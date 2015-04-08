@@ -76,7 +76,7 @@ namespace WarGame {
 			defBonus = 0;
 			atkBonus = 0;
 			defMultiplier = 1;
-			atkMultiplier = 1;
+			atkMultiplier = 2;
 			//BaseColor = Color.SandyBrown;
 			DrawSprite = delegate { this.spriteBatch.Draw(plainSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };
 			
@@ -94,9 +94,9 @@ namespace WarGame {
 		{
 
 			BaseCost = 3;
-			defBonus = 0;
+			defBonus = 1;
 			atkBonus = 2;
-			defMultiplier = 1;
+			defMultiplier = 3;
 			atkMultiplier = 1;
 			//BaseColor = Color.MediumSeaGreen;
 			DrawSprite = delegate { this.spriteBatch.Draw(hillSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };
@@ -116,10 +116,10 @@ namespace WarGame {
 		public HexTile ChangeToForest()
 		{	
 			BaseCost = 2;
-			defBonus = 0;
-			atkBonus = 0;
-			defMultiplier = 1;
-			atkMultiplier = 1;
+			defBonus = 1;
+			atkBonus = 1;
+			defMultiplier = 2;
+			atkMultiplier = 2;
 			//BaseColor = Color.DarkGreen;
 			DrawSprite = delegate { this.spriteBatch.Draw(forestSpr, new Vector2(SpritePosition.X, SpritePosition.Y), finalColor); };		
 
@@ -235,7 +235,7 @@ namespace WarGame {
 			ResetGraphics();
 			finalColor = Color.White;
 
-			Console.WriteLine("Dispatch: {0} - {1}", teamA, teamB);
+			//Console.WriteLine("Dispatch: {0} - {1}", teamA, teamB);
 			if (teamA || teamB)
 			{
 				if (teamA)
