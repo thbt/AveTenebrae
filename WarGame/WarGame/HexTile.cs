@@ -147,10 +147,11 @@ namespace WarGame {
 
 		public override void Update(GameTime gameTime) {
 
+			base.Update(gameTime);
 			//finalColor = BaseColor;
 			sprOffset = atGame.Panning;
 			
-			//base.Update(gameTime);
+			
 		}
 
 		public override void Draw(GameTime gameTime) {
@@ -158,7 +159,7 @@ namespace WarGame {
 			finalColor = BaseColor;
 			//il faut continuer à calculer certains effets, sinon ils sont désynchro lorsqu'ils reviennent dans la portion affichable
 			//finalColor = new Color(Color.White.ToVector4() * colorMultiplier + colorOffset * colorOffset.W);
-			base.DrawFX(gameTime);
+			DrawFX(gameTime);
 
 			if (SpriteCenter.X > -Width && SpriteCenter.X < atGame.ScreenWidth+Width
 				&& SpriteCenter.Y > -Height && SpriteCenter.Y < atGame.ScreenHeight+Height)
@@ -202,7 +203,7 @@ namespace WarGame {
 					new Vector2(GridPosition.X * Width * 0.75f + sprOffset.X + Width / 4f, SpritePosition.Y + Height / 8f),
 					new Color(0,0,0,0.33f));*/
 
-				base.Draw(gameTime);
+				//base.Draw(gameTime);
 				this.spriteBatch.End();
 			}
 
@@ -259,7 +260,7 @@ namespace WarGame {
 
 				if (teamA || teamB)
 				{
-					colorBlinkDuration = 1.5f;
+					colorBlinkDuration = 1f;
 					colorBlinkTimer = 0f;
 				}		
 			}

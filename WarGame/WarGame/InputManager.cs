@@ -112,6 +112,15 @@ namespace WarGame
 				}
 			}
 
+			if (m_kbCurState.IsKeyDown(Keys.Space))
+			{
+				//pour forcer la fin de tour d'une unité si aucun autre choix possible/avantageux
+				foreach (Unit u in atGame.ActivePlayer.OwnedUnits)
+				{
+					u.Freeze = true;
+				}
+			}
+
 			//panning camera
 			if (m_kbCurState.IsKeyDown(Keys.Left))
 			{
@@ -158,7 +167,7 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F5))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+				HeavyKnight unit = new HeavyKnight(atGame, atGame.ActivePlayer);
 				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
@@ -167,7 +176,7 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F6))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Scout unit = new Scout(atGame, atGame.ActivePlayer);
+				Cavalry unit = new Cavalry(atGame, atGame.ActivePlayer);
 				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
@@ -176,7 +185,7 @@ namespace WarGame
 			if (m_kbCurState.IsKeyDown(Keys.F7))
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);
+				Archer unit = new Archer(atGame, atGame.ActivePlayer);
 				if (hex.Occupant == null)
 					unit.PutOnHex(hex);
 				else
@@ -201,10 +210,22 @@ namespace WarGame
 				//atGame.activePlayer.teamColor.
 			}
 
+			//options debug: tue l'unité
+			if (m_kbCurState.IsKeyDown(Keys.K) && m_kbLastState.IsKeyUp(Keys.K))
+			{
+				if (atGame.ActivePlayer.SelectedUnit != null)
+					atGame.ActivePlayer.SelectedUnit.Kill();
+			}
+
 			//options debug: force l'affichage d'un message de début de gamephase
 			if (m_kbCurState.IsKeyDown(Keys.B) && m_kbLastState.IsKeyUp(Keys.B))
 			{
 				atGame.Overlay.DisplayMessage(atGame.CurrentPhase,null,1f,1.5f);
+			}
+
+			if (m_kbCurState.IsKeyDown(Keys.G) && m_kbLastState.IsKeyUp(Keys.G))
+			{
+				atGame.LaunchGameOver();
 			}
 
 			//options debug: test de selection de group par nombre (propagation d'une source)
@@ -238,31 +259,31 @@ namespace WarGame
 		{
 			
 			if (m_kbCurState.IsKeyDown(Keys.F5) && m_kbLastState.IsKeyUp(Keys.F5)
-				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Heavy) < atGame.nbHeavies)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is HeavyKnight) < atGame.nbHeavyKnights)
 			{
 				
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+				HeavyKnight unit = new HeavyKnight(atGame, atGame.ActivePlayer);
 				if (unit.DispatchableOnHex(hex))
 					unit.DispatchOnHex(hex);
 				else
 					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F6) && m_kbLastState.IsKeyUp(Keys.F6)
-				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Scout) < atGame.nbScout)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Cavalry) < atGame.nbCavalry)
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Scout unit = new Scout(atGame, atGame.ActivePlayer);
+				Cavalry unit = new Cavalry(atGame, atGame.ActivePlayer);
 				if (unit.DispatchableOnHex(hex))
 					unit.DispatchOnHex(hex);
 				else
 					unit.Dispose();
 			}
 			if (m_kbCurState.IsKeyDown(Keys.F7) && m_kbLastState.IsKeyUp(Keys.F7)
-				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Sniper) < atGame.nbSnipers)
+				&& atGame.ActivePlayer.OwnedUnits.Count(u => u is Archer) < atGame.nbArchers)
 			{
 				HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-				Sniper unit = new Sniper(atGame, atGame.ActivePlayer);
+				Archer unit = new Archer(atGame, atGame.ActivePlayer);
 				if (unit.DispatchableOnHex(hex))
 					unit.DispatchOnHex(hex);
 				else
@@ -274,11 +295,11 @@ namespace WarGame
         {
             //confirm attacks
             if (m_kbCurState.IsKeyDown(Keys.A) && m_kbLastState.IsKeyUp(Keys.A)
-                && atGame.ActivePlayer.OwnedUnits.Count(u => u is Heavy) < atGame.nbHeavies)
+                && atGame.ActivePlayer.OwnedUnits.Count(u => u is HeavyKnight) < atGame.nbHeavyKnights)
             {
                 Console.WriteLine(atGame.ActivePlayer.OwnedUnits.Count);
                 HexTile hex = atGame.GameBoard.GetHexAtCoordinates(m_mPosition);
-                Heavy unit = new Heavy(atGame, atGame.ActivePlayer);
+                HeavyKnight unit = new HeavyKnight(atGame, atGame.ActivePlayer);
                 if (unit.DispatchableOnHex(hex))
                     unit.DispatchOnHex(hex);
                 else

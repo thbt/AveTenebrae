@@ -35,6 +35,7 @@ namespace WarGame
 			AlphaBlinkEnable = false;
 			ColorBlinkEnable = false;
 			BounceEnable = false;
+			Visible = true;
 
 			colorBlinkCycle = new List<Color>();
 			colorBlinkCycle.Add(TeamColors.Red);

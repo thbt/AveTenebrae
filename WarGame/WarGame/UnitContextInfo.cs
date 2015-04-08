@@ -69,7 +69,9 @@ namespace WarGame
 		{
 
 			LinkedUnit = unit;			
+
 			// TODO: Construct any child components here
+
 		}
 
 		/// <summary>
@@ -88,8 +90,12 @@ namespace WarGame
 		{
 			attackerIcons = Game.Content.Load<Texture2D>("context_icons");
 			defenderIcons = Game.Content.Load<Texture2D>("context_icons");
+			coloredAttackerIcons = new Texture2D(GraphicsDevice, attackerIcons.Width, attackerIcons.Height);
+			coloredDefenderIcons = new Texture2D(GraphicsDevice, defenderIcons.Width, defenderIcons.Height);
 			sprUnitOffset = new Vector2(attackerIcons.Width / 4,attackerIcons.Height / 4);
+
 			base.LoadContent();			
+
 		}
 
 		/// <summary>
@@ -201,14 +207,14 @@ namespace WarGame
 			float XoffsetMult=4.75f;
 			//atk power
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.Strength.ToString(),
-				SpritePosition + new Vector2(sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1); 
+				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1); 
 			//movement points
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.MovementPoints.ToString(),
-				SpritePosition + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.RangedStrength.ToString(),
-				SpritePosition + new Vector2(sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+				SpritePosition - atGame.Panning + new Vector2(sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
 			this.spriteBatch.DrawString(ResourceManager.font, LinkedUnit.Range.ToString(),
-				SpritePosition + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
+				SpritePosition - atGame.Panning + new Vector2(attackerIcons.Width - sprUnitOffset.X * .85f + sprUnitOffset.X / XoffsetMult, attackerIcons.Height - 1.75f * sprUnitOffset.Y), Color.LightGreen * animSprAlpha, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 1);
 
 		}
 

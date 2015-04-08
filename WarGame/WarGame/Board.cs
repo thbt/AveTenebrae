@@ -6,7 +6,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace WarGame {
-	public class Board : ATComponent {
+	public class Board : ATDrawableComponent {
+
+
+		private Texture2D m_bgGradient;
 
 		public HexTile[,] tileMap {get; protected set;}
 		public readonly int ColumnCount, RowCount;
@@ -20,6 +23,7 @@ namespace WarGame {
 		public Dictionary<HexTile, List<HexTile>> tileGraph;
 		public Board(ATGame game) : base(game) {
 
+			game.Components.Add(this);
 			//variables pour tests, à cleaner plus tard
 			const int n = int.MaxValue;
 			const int p = 1;
@@ -155,6 +159,12 @@ namespace WarGame {
 			base.Initialize();
 		}
 
+		protected override void LoadContent()
+		{
+			base.LoadContent();
+			m_bgGradient = atGame.Content.Load<Texture2D>("bg_gradient");
+		}
+
 		public override void Update(GameTime gameTime) {
 			// TODO: Add your update code here
 
@@ -178,6 +188,18 @@ namespace WarGame {
 			}
 			return nextHex;
 
+		}
+
+		public override void Draw(GameTime gameTime)
+		{
+
+			Color gradColor = Color.DarkSlateBlue*1f;
+			gradColor.R = (byte)(gradColor.R*0.85f);
+			spriteBatch.Begin();
+			spriteBatch.Draw(m_bgGradient, new Rectangle(0, 0, atGame.ScreenWidth, (int)(atGame.ScreenHeight)), gradColor * 0.75f);
+
+			base.Draw(gameTime);
+			spriteBatch.End();
 		}
 
 		public HexTile GetHexAtCoordinates(Vector2 coords)
@@ -279,6 +301,17 @@ namespace WarGame {
 			}
 
 
+		}
+
+		public void ExecuteBattle()
+		{
+			foreach (Unit u in atGame.OpposingPlayer.OwnedUnits)
+			{
+				if (u.Attackers.Count > 0)
+				{
+					u.Kill();
+				}
+			}
 		}
 	}
 }

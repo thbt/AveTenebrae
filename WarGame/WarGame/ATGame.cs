@@ -18,8 +18,9 @@ namespace WarGame {
 	/// </summary>
 	public class ATGame : Microsoft.Xna.Framework.Game {
 
+		
 		public ScreenOverlay Overlay { get; private set; }
-		public int nbSnipers = 1, nbHeavies = 1, nbScout = 1;
+		public int nbArchers = 1, nbHeavyKnights = 1, nbCavalry = 1;
 		public static bool DEBUG_MODE { get; set; }
 
 		GraphicsDeviceManager graphics;
@@ -43,7 +44,8 @@ namespace WarGame {
 		{
 			GP_Dispatch,
 			GP_Movement,
-			GP_Combat
+			GP_Combat,
+			GP_GameOver
 		}
 		public GamePhase CurrentPhase { get; set; }
  
@@ -52,7 +54,7 @@ namespace WarGame {
 
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
-
+			
 			ScreenWidth = 1280;
 			ScreenHeight = 720;
 			
@@ -75,6 +77,7 @@ namespace WarGame {
 		/// </summary>
 		protected override void Initialize() {
 			// TODO: Add your initialization logic here
+			Overlay = new ScreenOverlay(this);
 			Panning = Vector2.Zero;
 			GameBoard = new Board(this);			
 
@@ -89,12 +92,10 @@ namespace WarGame {
 			inputManager = new InputManager(this);
 			
 			spriteBatch = new SpriteBatch(GraphicsDevice);
-			m_currentPhaseLogic = delegate(GameTime GameTime){};
-
-			Overlay = new ScreenOverlay(this);
+			m_currentPhaseLogic = delegate(GameTime GameTime){};			
 
 			base.Initialize();
-
+			Panning.Y += Overlay.TopPanelArea.Height+32;
 			PrepareDispatchPhase();
 			//m_currentPhaseLogic += DispatchPhase; //!!! retirer cette ligne après les tests !!!
 		}
@@ -106,6 +107,7 @@ namespace WarGame {
 		protected override void LoadContent() {
 			// Create a new SpriteBatch, which can be used to draw textures.
 			spriteBatch = new SpriteBatch(GraphicsDevice);
+
 			ResourceManager.font = Content.Load<SpriteFont>("Fonts/Arial");
 			// TODO: use this.Content to load your game content here
 		}
@@ -142,8 +144,7 @@ namespace WarGame {
 
 			spriteBatch.Begin();
 			GraphicsDevice.Clear(Color.MidnightBlue);
-			
-			// TODO: Add your drawing code here
+	// TODO: Add your drawing code here
 
 			base.Draw(gameTime);
 			spriteBatch.End();
@@ -173,7 +174,7 @@ namespace WarGame {
 		private void PrepareDispatchPhase()
 		{
 			m_currentPhaseLogic -= DispatchPhase;
-			int unitsPerTeam = nbSnipers + nbScout + nbHeavies;
+			int unitsPerTeam = nbArchers + nbCavalry + nbHeavyKnights;
 			int dispatchSpotsPerTeam = unitsPerTeam * 2;
 			int dispatchColumns = 3;
 
@@ -203,11 +204,13 @@ namespace WarGame {
 
 		private void DispatchPhase(GameTime gameTime)
 		{
-			int unitsPerTeam = nbSnipers + nbScout + nbHeavies;
+			int unitsPerTeam = nbArchers + nbCavalry + nbHeavyKnights;
+			int nbFrozenUnits = ActivePlayer.OwnedUnits.Count(u => u.Freeze == true);
 			bool readyA = (this.PlayerA.OwnedUnits.Count >= unitsPerTeam);
 			bool readyB = (this.PlayerB.OwnedUnits.Count >= unitsPerTeam);
 
-			if (ActivePlayer==PlayerA && readyA)
+
+			if (ActivePlayer == PlayerA && readyA && nbFrozenUnits >= unitsPerTeam)
 			{
 				if (ActivePlayer.SelectedUnit != null)
 					ActivePlayer.SelectedUnit.UnSelect();
@@ -225,9 +228,7 @@ namespace WarGame {
 
 			}
 
-
-
-			if (readyA && readyB)
+			if (readyA && readyB && nbFrozenUnits >= unitsPerTeam)
 			{
 				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
 				{
@@ -270,6 +271,9 @@ namespace WarGame {
 					m_phaseChangeTimer = 0;
 					Console.WriteLine("Movement phase finished");
 
+					if (ActivePlayer.SelectedUnit != null)
+						ActivePlayer.SelectedUnit.UnSelect();
+
 					ActivePlayer.UnfreezeUnits();
 					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
 					CurrentPhase = GamePhase.GP_Combat;
@@ -288,21 +292,56 @@ namespace WarGame {
 
 			if (nbFrozenUnits >= ActivePlayer.OwnedUnits.Count)
 			{
+				GameBoard.ExecuteBattle();
+
 				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
 				{
 					m_phaseChangeTimer = 0;
 					SwapPlayerTurns();
 					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
-					CurrentPhase = GamePhase.GP_Movement;
-					m_currentPhaseLogic = MovementPhase;
-					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
-					Console.WriteLine("Combat phase finished");
 
+					if (ActivePlayer.OwnedUnits.Count > 0 && OpposingPlayer.OwnedUnits.Count > 0)
+					{
+						CurrentPhase = GamePhase.GP_Movement;
+						m_currentPhaseLogic = MovementPhase;
+						Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
+						Console.WriteLine("Combat phase finished");
+					}
+					else
+					{
+						CurrentPhase = GamePhase.GP_GameOver;
+						m_currentPhaseLogic = GameOverPhase;
+						LaunchGameOver();
+						
+					}
 
 				}
 
 			}
 			
+		}
+
+		private void GameOverPhase(GameTime gameTime)
+		{
+			m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+			Console.WriteLine("Game over");
+			if ((int)m_phaseChangeTimer == 10)
+			{
+				m_phaseChangeTimer = float.PositiveInfinity;
+				Overlay.DisplayEasterEgg();
+				m_currentPhaseLogic = delegate { };
+			}
+		}
+
+		public void LaunchGameOver()
+		{
+			foreach (Unit u in Components.OfType<Unit>())
+			{
+				u.Kill();
+			}
+			CurrentPhase = GamePhase.GP_GameOver;
+			m_currentPhaseLogic = GameOverPhase;
+			Overlay.DisplayMessage(ATGame.GamePhase.GP_GameOver, null, 1f, float.PositiveInfinity);
 		}
 	}
 }

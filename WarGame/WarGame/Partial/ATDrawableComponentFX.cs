@@ -30,7 +30,9 @@ namespace WarGame
 					DrawFX += DrawAlphaBlink;
 				else
 				{
-					DrawFX -= DrawAlphaBlink;
+					if (DrawFX != null)
+						foreach (DrawDelegate d in DrawFX.GetInvocationList()) ;
+							DrawFX -= DrawAlphaBlink;		
 					//finalColor = Color.White;
 				}
 					

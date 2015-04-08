@@ -87,12 +87,13 @@ namespace WarGame
 			: base((Game)game)
 		{
 			// TODO: Construct any child components here
-			atGame.Components.Add(this);
+			
 			Attackers = new HashSet<Unit>();
 			ExecuteActions += delegate(GameTime gameTime) { };
 			InfoPopup = new UnitContextInfo(game, this);
 			//ReachableHexes = new List<HexTile>();
 			//AttackableHexes = new List<HexTile>();
+			atGame.Components.Add(this);
 		}
 
 		public Unit(ATGame game, Player owner, int move, int str, int range, int rangedStr)
@@ -148,7 +149,9 @@ namespace WarGame
 		public void Select()
 		{
 			Unit prev = atGame.ActivePlayer.SelectedUnit;
-			atGame.ActivePlayer.SelectedUnit = this;
+
+			if (Enabled)
+				atGame.ActivePlayer.SelectedUnit = this;
 
 			//deselectionner la precedente unité
 			if (prev != null)
@@ -163,8 +166,8 @@ namespace WarGame
 			if (this != prev &&  atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 				ResetRangeGraphics();
 
-			
-			if (this == atGame.ActivePlayer.SelectedUnit)
+
+			if (Enabled && this == atGame.ActivePlayer.SelectedUnit)
 			{
 				this.InfoPopup.Show();
 
@@ -173,9 +176,11 @@ namespace WarGame
 				else
 					if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
 						this.HighlightAttackRange();
+
+				this.SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
 			}
 						
-			this.SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
+			
 		}
 
 		public void UnSelect()
@@ -197,6 +202,37 @@ namespace WarGame
 			BounceEnable = false;
 			ColorBlinkEnable = false;
 			this.InfoPopup.Hide();
+			//atGame.ActivePlayer.SelectedUnit = null;
+		}
+
+		public void Kill()
+		{
+			UnSelect();
+
+			atGame.ActivePlayer.SelectedUnit = null;
+			
+			this.ResetGraphics();
+
+			blinkTimer = 0;
+			blinkAlpha = 1f;
+			blinkDuration = 2f;			
+			
+			DrawFX = delegate(GameTime gameTime)
+			{
+				blinkTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				blinkAlpha = MathHelper.SmoothStep(1,-0.1f,(blinkTimer / blinkDuration));
+				finalColor *= blinkAlpha;
+
+				if (blinkAlpha < 0)
+				{
+					DrawFX = delegate { };
+					Owner.OwnedUnits.Remove(this);
+					
+					this.Visible = false;
+				}
+			};
+
+			this.Enabled = false;
 			
 		}
 
@@ -231,8 +267,7 @@ namespace WarGame
 					{
 						Attackers.Add(attacker);
 						this.SetColorBlink(atGame.ActivePlayer.GetColorBlinkList(), 0.5f, true, false, true);
-					}
-											
+					}											
 				}
 				else
 				{
@@ -260,7 +295,6 @@ namespace WarGame
 			}
 			else
 				hex.Occupant = this;
-
 			
 			this.PaletteSwap(Owner.TeamColor);
 			
@@ -302,7 +336,7 @@ namespace WarGame
 
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
-				Freeze = true;
+				Freeze = atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch;
 				BounceEnable = false;
 				Console.WriteLine(unitClass + " arrived at " + nextDest);
 
@@ -387,18 +421,24 @@ namespace WarGame
 			OccupiedHex.colorOffset = new Vector4(0.25f, 0.25f, 0.5f, 0.75f);
 
 		}
-		public virtual void HighlightAttackRange(bool highlight = true)
+		public virtual void HighlightAttackRange(bool highlight = true, bool isSecondaryRange=false)
 		{
-
+			
 			List<HexTile> atk = AttackableHexes;
 
 			atk.Add(OccupiedHex);
 			foreach (HexTile h in atk)
-			{
-				
+			{				
 				h.ColorBlinkEnable = false; //retirer le precedent blink pour eviter la superposition des effets
-				h.ResetGraphics(true);
-				h.TeamColorBlink(Owner);
+				//h.ResetGraphics();
+				if (!isSecondaryRange)
+					h.TeamColorBlink(Owner);
+				else
+				{
+					h.TeamColorBlink(atGame.OpposingPlayer, new Color(0.75f, 0.75f, 0.75f, 0.5f));
+				}
+					
+
 				h.colorMultiplier.W = -0.5f;
 				h.ColorBlinkEnable = true;
 
