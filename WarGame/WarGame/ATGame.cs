@@ -489,7 +489,7 @@ namespace WarGame {
 			}
 
 			//conditions d'arret de la phase
-			if (m_targetedUnits.Count == 0 && (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
+			if (m_targetedUnits.Count == 0 && (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
 			{
 				if (ActivePlayer.OwnedUnits.Count > 0
 					&& OpposingPlayer.OwnedUnits.Count > 0)
