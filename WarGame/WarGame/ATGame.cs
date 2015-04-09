@@ -60,8 +60,8 @@ namespace WarGame {
 		private delegate void GamePhaseLogic(GameTime gameTime);
 		private GamePhaseLogic m_currentPhaseLogic;
 
-        private enum BattleSubPhase { PlayAttack, PlayDeath, CalculateDamage, Other };
-        private BattleSubPhase m_battlesubPhase;
+        
+        private BattleSubPhase m_battleSubPhase = BattleSubPhase.None;
         private HashSet<Unit> m_helpers;
         private HashSet<Unit> m_atkers;
         private HashSet<Unit> m_killed;
@@ -173,7 +173,7 @@ namespace WarGame {
 
 		public void ResetTimers(float phase = 0, float generic1 = 0, float generic2 = 0, float generic3 = 0)
 		{
-			m_phaseChangeTimer = phase;
+			//m_phaseChangeTimer = phase;
 			m_genericTimer1 = generic1;
 			m_genericTimer2 = generic2;
 			m_genericTimer3 = generic3;
@@ -198,7 +198,9 @@ namespace WarGame {
 				ActivePlayer.SelectedHex.UnSelect();
 
 			ActivePlayer.UnfreezeUnits();
+            ActivePlayer.ResetUnitStatus();
 			OpposingPlayer.UnfreezeUnits();
+            OpposingPlayer.ResetUnitStatus();
 		}
 
 
@@ -336,11 +338,14 @@ namespace WarGame {
 
 					ResetTimers();
 					Console.WriteLine("Goto Execute Battle");
-					m_currentPhaseLogic=ExecuteBattle;
+					
+                    HexTile.ResetGraphics(GameBoard.GetTileList(), true);
+                    m_battleSubPhase = BattleSubPhase.StartAttack;
+                    m_currentPhaseLogic = ExecuteBattle;
 				}
 			}			
 		}
-
+        private enum BattleSubPhase { Init, StartAttack, StartDeathAnim, CalculateOutcome, EndPhase, Other, None, PlayDeathAnim, StartBattleAnim };
 		/// <summary>
 		/// Une fois toutes les unités fixées sur une action, déroulement animé du combat
 		/// </summary>
@@ -350,97 +355,131 @@ namespace WarGame {
 			if (ActivePlayer.SelectedUnit != null)			
 				ActivePlayer.SelectedUnit.UnSelect();
 
-			HexTile.ResetGraphics(GameBoard.GetTileList(), true);
-			float killDelay = 0.75f;
-			float attackdelay = 0.35f;
+			
+			float killDelay = 0.85f;
+			float attackdelay = 0.45f;
 			float ms = 1000;
 
-			//s'il y a des unités engagées en combat
-			if ( m_targetedUnits.RemoveWhere(unit => (unit.Attackers.Count == 0)) < m_targetedUnits.Count ){
 
+            //tant qu'il y a des unités engagées en combat
+            if (m_targetedUnits.RemoveWhere(unit => (unit.Attackers.Count == 0)) < m_targetedUnits.Count && m_targetedUnits.Count > 0)
+            {
                 
 				Unit u = m_targetedUnits.Reverse().ElementAt(0);
 
 				//si les sons d'attaques ont été joués et les scores ont calculés, tuer/blesser/reculer les unités perdantes
 				if (m_genericTimer1 >= killDelay)
 				{
-                    if (m_attackPlayed)
+                    //un seul passage ici par groupe de combat
+                    if (m_battleSubPhase == BattleSubPhase.CalculateOutcome)
                     {
-                        
-                        foreach (Unit hu in OpposingPlayer.OwnedUnits)
-                        {
-                            foreach (Unit atk in u.Attackers)
-                            {
-                                m_atkers.Add(atk);
-                                if (hu.AttackableHexes.Contains(atk.OccupiedHex))
-                                    m_helpers.Add(hu);
-                            }
-                        }
 
                         float scoreAtk = 0, scoreDef = 0;
                         foreach (Unit a in m_atkers) { scoreAtk += a.EvaluateContextDamage(u); }
                         foreach (Unit d in m_helpers) { scoreDef += d.EvaluateContextDamage(u.Attackers.ElementAt(0)); }
 
-                        float ratioAtk = scoreAtk / scoreDef;
-                        float ratioDef = scoreDef / scoreAtk;
+                        float ratioAtk = (scoreAtk+1) / (scoreDef+1);
+                        float ratioDef = (scoreDef + 1) / (scoreAtk + 1);
                         int dice = ResourceManager.Random.Next(1, 7);
-                        int dmgAtk=(int)(ratioAtk * dice);
-                        int dmgDef=(int)(ratioDef * dice);
+                        int dmgAtk = (int)Math.Ceiling(ratioAtk * dice);
+                        int dmgDef= (int)Math.Ceiling(ratioDef * dice);
 
                         Console.WriteLine("Score Atk  = " + scoreAtk + " - Score Def = " + scoreDef);
+                        Console.WriteLine("Ratio Atk  = " + ratioAtk + " - Ratio Def = " + ratioDef);
                         Console.WriteLine("Dmg Atk  = " + dmgAtk + " - Dmg Def = " + dmgDef);
 
                         foreach (Unit a in m_atkers){
+                           a.SetBounce(2, -1, (a.HealthPoints/a.BaseStrength)*0.5f, true, true);
+                           
                            if ( a.TakeDamageAndReportDeath(dmgDef)){
                                m_killed.Add(a);
                            }
                         }
+                        m_atkers.Except(m_killed);
                         m_helpers.Add(u);
                         foreach (Unit d in m_helpers)
                         {
+                            d.SetBounce(2, -1, (d.HealthPoints / d.BaseStrength) * 0.5f, true, true);
                             if (d.TakeDamageAndReportDeath(dmgAtk))
                             {
                                 m_killed.Add(d);
                             }
                         }
-
-                        
+                        m_helpers.Except(m_killed);
 
                         Console.WriteLine("Targeted ----\n" + m_targetedUnits.Count);
                         Console.WriteLine("Helpers ----\n" + m_helpers.Count);
                         Console.WriteLine("Attackers ----\n" + m_atkers.Count);
 
                         m_genericTimer1 = 0;
+                        m_targetedUnits.Remove(u);
+                        m_battleSubPhase = BattleSubPhase.StartBattleAnim;
+                    }
+                    if (m_battleSubPhase == BattleSubPhase.StartBattleAnim)
+                    {
+                        m_targetedUnits.Remove(u);
+                        u.HitSound.Play();
+                        if (m_killed.Count > 0) m_battleSubPhase = BattleSubPhase.StartDeathAnim;
+                        else m_battleSubPhase = BattleSubPhase.StartAttack;                        
                     }
 
-                    if (m_killed.Count > 0)
+                    //joue une fois par groupe de combat tant qu'il en reste
+                    if (m_battleSubPhase == BattleSubPhase.StartDeathAnim  && m_killed.Count > 0 )
 					{
-						u.HitSound.Play();						
-						foreach (Unit h in m_helpers) h.Kill();
+					
+						foreach (Unit k in m_killed) { k.Kill();}
+                        m_battleSubPhase = BattleSubPhase.PlayDeathAnim;
 					}
-                    if (!m_killed.ElementAt(0).Visible)
+                    //verification periodique que l'animation de mort des unités est finie ou non 
+                    if (m_battleSubPhase == BattleSubPhase.PlayDeathAnim && !m_killed.ElementAt(0).Visible)
 					{
+                        
                         m_killed.Remove(u);
-						m_targetedUnits.Remove(u);
+                        m_killed.Clear();
+                        
                         if (m_killed.Count == 0)
                         {
-                            m_attackPlayed = false;
-                            m_helpers.Clear();
-                            m_killed.Clear();
                             
+                            m_battleSubPhase = BattleSubPhase.StartAttack;
                         }
-						    
+                        m_genericTimer2 = -1f;
 					}					
 				}
 				//sinon jouer les sons d'attaque apres un delai 'cosmetique'
-				else if ( m_genericTimer2 > attackdelay && !m_attackPlayed )
+                if (m_genericTimer2 > attackdelay && m_battleSubPhase == BattleSubPhase.StartAttack )
 				{
-					m_attackPlayed = true;
+                    foreach (Unit a in m_atkers) { a.ResetGraphics(); }
+                    foreach (Unit d in m_helpers) { d.ResetGraphics(); }
+                    HashSet<Unit> prevHelpers = new HashSet<Unit>(m_helpers);
+                    HashSet<Unit> prevAtkers = new HashSet<Unit>(m_atkers);
+                    m_atkers.Clear();
+                    m_helpers.Clear();
+                    
+                    //creation des groupes de combats
+                    foreach (Unit hu in OpposingPlayer.OwnedUnits)
+                    {
+                        foreach (Unit atk in u.Attackers)
+                        {
+                            if (atk.HealthPoints > 0)
+                            {
+                                m_atkers.Add(atk);
+                                //ajout d'une unité alliée si elle est à portée, n'est pas deja attaquée ni engagée dans un autre sauvetage
+                                if (hu.AttackableHexes.Contains(atk.OccupiedHex) && hu.Attackers.Count == 0 && !prevHelpers.Contains(hu))
+                                    m_helpers.Add(hu);
+                            }
 
+                        }
+                    }
+                    					
+                    m_battleSubPhase = BattleSubPhase.CalculateOutcome;
                     //u.Attackers.Reverse();
-					foreach (Unit au in u.Attackers) { 
-						au.AttackSound.Play(); }
-					m_genericTimer2 = 0;
+                    foreach (Unit atk in m_atkers)
+						atk.AttackSound.Play();
+                    foreach (Unit def in m_helpers)
+                        def.AttackSound.Play();
+                    u.AttackSound.Play();
+
+					m_genericTimer2 = -1f;
 				}
 				else// if (m_phaseChangeTimer > 0)
 				{

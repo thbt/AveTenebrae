@@ -53,8 +53,8 @@ namespace WarGame
 			get { return m_colorBlinkEnable; }
 			set
 			{
-				m_blinkEnable = value;
-				if (m_blinkEnable)
+                m_colorBlinkEnable = value;
+                if (m_colorBlinkEnable)
 				{
 					//colorBlinkTimer = 0;
 					if (colorBlinkCycle == null)
@@ -89,7 +89,6 @@ namespace WarGame
 		protected float colorBlinkSign = 1f;
 		protected float colorBlinkTimer = 0;
 		protected float colorBlinkDuration = 1f;
-
 
 		//variables de mouvement/flottement des sprites
 		private bool m_bounceEnable;
@@ -212,29 +211,33 @@ namespace WarGame
 		/// <param name="gameTime"></param>
 		protected void DrawColorBlink(GameTime gameTime)
 		{
-			colorBlinkTimer = (float)(colorBlinkTimer + gameTime.ElapsedGameTime.TotalSeconds);
-			int nextIndex = (colorCurrentIndex + 1) % colorBlinkCycle.Count;
+            if (colorBlinkCycle.Count > 0)
+            {
 
-			if (colorBlinkTimer >= colorBlinkDuration)
-			{
-				colorBlinkTimer = 0;
-				colorCurrentIndex = nextIndex;
-				//if (BlinkEnable)
-				blinkSign = -blinkSign;
-			}
+                colorBlinkTimer = (float)(colorBlinkTimer + gameTime.ElapsedGameTime.TotalSeconds);
+                int nextIndex = (colorCurrentIndex + 1) % colorBlinkCycle.Count;
 
-			Vector4 previous = colorBlinkCycle.ElementAt(colorCurrentIndex).ToVector4();
-			Vector4 next = colorBlinkCycle.ElementAt(nextIndex).ToVector4();
-			float timerStep = colorBlinkTimer / colorBlinkDuration;
+                if (colorBlinkTimer >= colorBlinkDuration)
+                {
+                    colorBlinkTimer = 0;
+                    colorCurrentIndex = nextIndex;
+                    //if (BlinkEnable)
+                    blinkSign = -blinkSign;
+                }
 
-			Vector4 mix;
-			Vector4.SmoothStep(ref previous, ref next, timerStep, out mix);
+                Vector4 previous = colorBlinkCycle.ElementAt(colorCurrentIndex).ToVector4();
+                Vector4 next = colorBlinkCycle.ElementAt(nextIndex).ToVector4();
+                float timerStep = colorBlinkTimer / colorBlinkDuration;
 
-			//Console.WriteLine(blinkAlpha);
-			byte a = finalColor.A;
+                Vector4 mix;
+                Vector4.SmoothStep(ref previous, ref next, timerStep, out mix);
 
-			finalColor = new Color((finalColor.ToVector4() * 0.33f + mix * 0.67f));
-			finalColor.A = a;
+                //Console.WriteLine(blinkAlpha);
+                byte a = finalColor.A;
+
+                finalColor = new Color((finalColor.ToVector4() * 0.33f + mix * 0.67f));
+                finalColor.A = a;
+            }
 		}
 
 		/// <summary>

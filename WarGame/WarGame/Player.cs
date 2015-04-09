@@ -144,5 +144,18 @@ namespace WarGame
 			}
 				
 		}
+
+        public void ResetUnitStatus() {
+            
+            foreach (Unit u in OwnedUnits)
+                u.ResetStatus();
+        }
+
+        public void ResetUnitGraphics()
+        {
+
+            foreach (Unit u in OwnedUnits)
+                u.ResetGraphics();
+        }
 	}
 }

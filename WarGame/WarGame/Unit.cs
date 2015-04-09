@@ -49,6 +49,7 @@ namespace WarGame
 		public UnitContextInfo InfoPopup { get; protected set; }
 		
 		public HexTile OccupiedHex { get; protected set; }
+        public List<HexTile> Path { get; protected set; }
 		public virtual List<HexTile> ReachableHexes	{
 			get { return atGame.GameBoard.GetNeighboursRanged(OccupiedHex, this.Movement, true); }
 		}
@@ -220,6 +221,13 @@ namespace WarGame
 			return TotalAttack;
 		}
 
+        public void ResetStatus()
+        {
+            Freeze = false;
+            MovementPoints = Movement;
+            Attackers.Clear();
+        }
+
 		public void Kill(bool silentDeath=false)
 		{
 			this.InfoPopup.Hide();
@@ -370,7 +378,6 @@ namespace WarGame
 					OccupiedHex.ResetGraphics(true);
 				}
 
-
 				PutOnHex(nextDestTile);
 				ExecuteActions -= MoveTo;
 				Freeze = atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch;
@@ -400,6 +407,75 @@ namespace WarGame
 				}
 		
 		}
+
+        public void PathTo(GameTime gameTime)
+        {
+
+            //Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
+            if (Path.Count > 0)
+            {
+                if (OccupiedHex == Path.Last())
+                {
+
+                    if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
+                    {
+                        HexTile.ResetGraphics(ReachableHexes, true);
+                        OccupiedHex.ResetGraphics(true);
+                    }
+                    PutOnHex(nextDestTile);
+                    ExecuteActions -= PathTo;
+                    Freeze = atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch;
+                    BounceEnable = false;
+                    Console.WriteLine(unitClass + " arrived at " + nextDest);
+                }
+                else if (nextDestTile == OccupiedHex)
+                {
+                    //OccupiedHex = null;                        
+                    Path.RemoveAt(0);
+                    nextDestTile = Path.ElementAt(0);
+                }
+                else
+                    MoveTo(gameTime);
+            }
+
+
+			    //Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
+
+
+           }
+
+        public void StartPathTo(HexTile tileDest, bool checkForRange = false, bool checkIfFrozen = false)
+        {
+            Path = atGame.GameBoard.FindPath(OccupiedHex, tileDest);
+
+            bool frozenValidity = ((!Freeze && checkIfFrozen) || !checkIfFrozen);
+            bool rangeValidity = ((checkForRange && ReachableHexes.Contains(tileDest)) || !checkForRange);
+
+            if (frozenValidity && rangeValidity)
+                if (Vector2.Distance(SpritePosition, OccupiedHex.SpritePosition) <= 1)
+                {
+                    float totalDist = 0;
+                    HexTile last=OccupiedHex;
+                    
+                    foreach (HexTile step in Path)
+                    {
+                        totalDist += Vector2.Distance(step.SpriteCenter, last.SpriteCenter);
+                        last = step;
+                    }
+
+                    nextDestTile = Path.ElementAt(0);
+                    Vector2.Distance(OccupiedHex.SpritePosition, tileDest.SpritePosition);
+                    float expectedDuration = totalDist / moveSpeed;
+
+                    SetBounce(12, -1, expectedDuration / 100, false, true);
+                     
+                    ExecuteActions += PathTo;
+
+                }
+		
+        }
+
+
 
 		
 		

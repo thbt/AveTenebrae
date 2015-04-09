@@ -40,7 +40,7 @@ namespace WarGame {
 
 		//gameStats
 		public int BaseCost { get; protected set; }
-		public int FinalCost { get { return (Walkable) ? BaseCost : int.MaxValue; } }
+		public int FinalCost { get { return (Walkable) ? BaseCost : (int)Math.Sqrt(int.MaxValue); } }
 		public int totalPathCost;
 		public int defBonus { get; protected set; }
 		public int atkBonus { get; protected set; }
