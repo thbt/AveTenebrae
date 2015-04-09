@@ -143,6 +143,60 @@ namespace WarGame {
 			}
 		}
 
+		public List<HexTile> FindPath(HexTile start, HexTile goal) {
+
+			Dictionary<HexTile, HexTile> cameFrom = new Dictionary<HexTile, HexTile>();
+			Dictionary<HexTile, int> costSoFar = new Dictionary<HexTile, int>();
+
+			var frontier = new PriorityQueue<HexTile>();
+			frontier.Enqueue(start, 0);
+
+			cameFrom.Add(start, start);
+			costSoFar.Add(start, 0);
+
+			while(frontier.Count > 0) {
+				var current = frontier.Dequeue();
+
+				if(current.Equals(goal)) {
+					break;
+				}
+
+				foreach(HexTile next in current.GetNeighbours()) {
+					int newCost = costSoFar[current] + next.FinalCost;
+					if(!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
+						costSoFar.Add(next, newCost);
+						int heuristic = Math.Abs(next.GridPosition.X - goal.GridPosition.X) + 
+							Math.Abs(next.GridPosition.Y - goal.GridPosition.Y);
+						int priority = newCost + heuristic;
+						frontier.Enqueue(next, priority);
+						cameFrom.Add(next, current);
+					}
+				}
+			}
+
+			// On retrace le chemin à l'envers pour créer la liste
+			HexTile currentTile = goal;
+			List<HexTile> path = new List<HexTile>();
+			path.Add(currentTile);
+			while(currentTile != start) {
+				currentTile = cameFrom[currentTile];
+				path.Add(currentTile);
+			}
+
+			return path;
+		}
+
+		private static HexTile GetLowestCost(ref List<HexTile> liste) {
+			HexTile best = liste[0];
+
+			foreach(HexTile t in liste) {
+				if(best != null && best.FinalCost > t.FinalCost)
+					best = t;
+			}
+
+			return best;
+		}
+
 		/*public List<HexTile> Dijkstra(HexTile start, HexTile goal) {
 			List<HexTile> path = new List<HexTile>();
 
