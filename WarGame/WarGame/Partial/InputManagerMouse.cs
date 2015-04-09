@@ -102,7 +102,6 @@ namespace WarGame
 	
 				m_lastRefHex = nextHex;
 
-
 			}
 
 		}
