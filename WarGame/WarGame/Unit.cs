@@ -220,6 +220,13 @@ namespace WarGame
 			return TotalAttack;
 		}
 
+        public void ResetStatus()
+        {
+            Freeze = false;
+            MovementPoints = Movement;
+            Attackers.Clear();
+        }
+
 		public void Kill(bool silentDeath=false)
 		{
 			this.InfoPopup.Hide();
