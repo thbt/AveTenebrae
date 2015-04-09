@@ -143,7 +143,7 @@ namespace WarGame {
 			}
 		}
 
-		public Dictionary<HexTile, HexTile> FindPath(HexTile start, HexTile goal) {
+		public List<HexTile> FindPath(HexTile start, HexTile goal) {
 
 			Dictionary<HexTile, HexTile> cameFrom = new Dictionary<HexTile, HexTile>();
 			Dictionary<HexTile, int> costSoFar = new Dictionary<HexTile, int>();
@@ -174,7 +174,16 @@ namespace WarGame {
 				}
 			}
 
-			return cameFrom;
+			// On retrace le chemin à l'envers pour créer la liste
+			HexTile currentTile = goal;
+			List<HexTile> path = new List<HexTile>();
+			path.Add(currentTile);
+			while(currentTile != start) {
+				currentTile = cameFrom[currentTile];
+				path.Add(currentTile);
+			}
+
+			return path;
 		}
 
 		private static HexTile GetLowestCost(ref List<HexTile> liste) {
