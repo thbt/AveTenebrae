@@ -298,8 +298,11 @@ namespace WarGame
 							Console.WriteLine("Target Locked");
 							foreach (Unit u in destTile.Occupant.GetPotentialAttackers(selUnit))
 							{
+								alreadyAttacking = destTile.Occupant.Attackers.Contains(u);
 								targetLockable = (!alreadyAttacking && !u.Freeze && targetLockable);
-								u.TargetUnit(destTile.Occupant, targetLockable);
+								//u.TargetUnit(destTile.Occupant, targetLockable);
+								if (targetLockable)
+									u.TargetUnit(destTile.Occupant, true);
 							}														
 						}
 						else if (alreadyAttacking){

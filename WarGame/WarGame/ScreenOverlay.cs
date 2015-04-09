@@ -247,7 +247,7 @@ namespace WarGame
 
 			int rowOffset = (int)msgType%4;
 
-			m_sndSwoosh.Play(0.125f,0.85f,0f);
+			m_sndSwoosh.Play(0.3f,0.85f,0f);
 
 			if (msgType != BigMessages.GameOver)
 			{
@@ -261,8 +261,8 @@ namespace WarGame
 				{
 					if (m_Xdone > 0.52f && (int)m_bigMessageOffset.X != 0)
 					{
-						Console.WriteLine("phase");
-						m_sndSwoosh.Play(0.125f, 0.85f, 0f);
+						//Console.WriteLine("phase");
+						m_sndSwoosh.Play(0.3f, 0.85f, 0f);
 						UpdateActions = delegate { };
 					}
 

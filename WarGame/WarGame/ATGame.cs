@@ -34,8 +34,8 @@ namespace WarGame {
 
 		public Player PlayerA { get; private set;}
 		public Player PlayerB { get; private set;}
-		public Player ActivePlayer;
-		public Player OpposingPlayer;
+        public Player ActivePlayer {  get; private set;}
+		public Player OpposingPlayer {get; private set;}
 
 		private float m_genericTimer1 = 0f;
 		private float m_genericTimer2 = 0f;
@@ -60,6 +60,12 @@ namespace WarGame {
 		private delegate void GamePhaseLogic(GameTime gameTime);
 		private GamePhaseLogic m_currentPhaseLogic;
 
+        private enum BattleSubPhase { PlayAttack, PlayDeath, CalculateDamage, Other };
+        private BattleSubPhase m_battlesubPhase;
+        private HashSet<Unit> m_helpers;
+        private HashSet<Unit> m_atkers;
+        private HashSet<Unit> m_killed;
+
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
 			
@@ -74,7 +80,10 @@ namespace WarGame {
 			graphics.SynchronizeWithVerticalRetrace = true;
 			graphics.PreferMultiSampling = true;			
 			graphics.ApplyChanges();
-			Content.RootDirectory = "Content";
+            Content.RootDirectory = "Content";
+            m_helpers = new HashSet<Unit>();
+            m_atkers = new HashSet<Unit>();
+            m_killed = new HashSet<Unit>();
 		}
 
 		/// <summary>
@@ -347,40 +356,80 @@ namespace WarGame {
 			float ms = 1000;
 
 			//s'il y a des unités engagées en combat
-			if (m_targetedUnits.Count > 0){
+			if ( m_targetedUnits.RemoveWhere(unit => (unit.Attackers.Count == 0)) < m_targetedUnits.Count ){
+
+                
 				Unit u = m_targetedUnits.Reverse().ElementAt(0);
 
-				//si les sons d'attaques ont été joués et les scores ont calculés, tuer/reculer les unités perdantes
+				//si les sons d'attaques ont été joués et les scores ont calculés, tuer/blesser/reculer les unités perdantes
 				if (m_genericTimer1 >= killDelay)
 				{
-					HashSet<Unit> helpers=new HashSet<Unit>();
-					HashSet<Unit> atkers = new HashSet<Unit>();
-					foreach (Unit hu in OpposingPlayer.OwnedUnits)
-					{
-						foreach (Unit atk in u.Attackers)
-						{
-							atkers.Add(atk);
-							if (hu.AttackableHexes.Contains(atk.OccupiedHex))
-								helpers.Add(hu);
-						}						
-					}
+                    if (m_attackPlayed)
+                    {
+                        
+                        foreach (Unit hu in OpposingPlayer.OwnedUnits)
+                        {
+                            foreach (Unit atk in u.Attackers)
+                            {
+                                m_atkers.Add(atk);
+                                if (hu.AttackableHexes.Contains(atk.OccupiedHex))
+                                    m_helpers.Add(hu);
+                            }
+                        }
 
-					int dmgA, dmgB;
-					Console.WriteLine("Targeted ----\n"+m_targetedUnits.Count);
-					Console.WriteLine("Helpers ----\n" + helpers.Count);
-					Console.WriteLine("Attackers ----\n" + atkers.Count);
+                        float scoreAtk = 0, scoreDef = 0;
+                        foreach (Unit a in m_atkers) { scoreAtk += a.EvaluateContextDamage(u); }
+                        foreach (Unit d in m_helpers) { scoreDef += d.EvaluateContextDamage(u.Attackers.ElementAt(0)); }
 
-					m_genericTimer1 = 0;
-					if (u.Enabled)
+                        float ratioAtk = scoreAtk / scoreDef;
+                        float ratioDef = scoreDef / scoreAtk;
+                        int dice = ResourceManager.Random.Next(1, 7);
+                        int dmgAtk=(int)(ratioAtk * dice);
+                        int dmgDef=(int)(ratioDef * dice);
+
+                        Console.WriteLine("Score Atk  = " + scoreAtk + " - Score Def = " + scoreDef);
+                        Console.WriteLine("Dmg Atk  = " + dmgAtk + " - Dmg Def = " + dmgDef);
+
+                        foreach (Unit a in m_atkers){
+                           if ( a.TakeDamageAndReportDeath(dmgDef)){
+                               m_killed.Add(a);
+                           }
+                        }
+                        m_helpers.Add(u);
+                        foreach (Unit d in m_helpers)
+                        {
+                            if (d.TakeDamageAndReportDeath(dmgAtk))
+                            {
+                                m_killed.Add(d);
+                            }
+                        }
+
+                        
+
+                        Console.WriteLine("Targeted ----\n" + m_targetedUnits.Count);
+                        Console.WriteLine("Helpers ----\n" + m_helpers.Count);
+                        Console.WriteLine("Attackers ----\n" + m_atkers.Count);
+
+                        m_genericTimer1 = 0;
+                    }
+
+                    if (m_killed.Count > 0)
 					{
-						u.HitSound.Play();
-						u.Kill();
-						foreach (Unit h in helpers) h.Kill();
+						u.HitSound.Play();						
+						foreach (Unit h in m_helpers) h.Kill();
 					}
-					else if (!u.Visible)
+                    if (!m_killed.ElementAt(0).Visible)
 					{
+                        m_killed.Remove(u);
 						m_targetedUnits.Remove(u);
-						m_attackPlayed = false;
+                        if (m_killed.Count == 0)
+                        {
+                            m_attackPlayed = false;
+                            m_helpers.Clear();
+                            m_killed.Clear();
+                            
+                        }
+						    
 					}					
 				}
 				//sinon jouer les sons d'attaque apres un delai 'cosmetique'
@@ -388,7 +437,8 @@ namespace WarGame {
 				{
 					m_attackPlayed = true;
 
-					foreach (Unit au in u.Attackers.Reverse()) { 
+                    //u.Attackers.Reverse();
+					foreach (Unit au in u.Attackers) { 
 						au.AttackSound.Play(); }
 					m_genericTimer2 = 0;
 				}
@@ -427,7 +477,7 @@ namespace WarGame {
 				m_phaseChangeTimer++;
 				Overlay.DisplayEasterEgg();
 			}
-			else if ((int)m_phaseChangeTimer == 15){
+			else if ((int)m_phaseChangeTimer == 13){
 				m_currentPhaseLogic = delegate { };
 				m_phaseChangeTimer = float.PositiveInfinity;
 				this.Exit();

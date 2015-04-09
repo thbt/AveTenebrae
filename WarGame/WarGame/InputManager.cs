@@ -242,15 +242,25 @@ namespace WarGame
 			//options debug: swap player turns
 			if (m_kbCurState.IsKeyDown(Keys.S) && m_kbLastState.IsKeyUp(Keys.S))
 			{
-				atGame.SwapPlayerTurns();
-				
+				atGame.SwapPlayerTurns();				
 			}
 
+			//options debug: clear dispatch zones
+			/*
 			if (m_kbCurState.IsKeyDown(Keys.R) && m_kbLastState.IsKeyUp(Keys.R))
 			foreach (HexTile h in atGame.GameBoard.GetTileList())
 			{
 				h.SetDispatchable(false, false);
 				h.SetHighlighted(false);
+			}*/
+
+			//options debug: spawn random		
+			if (m_kbCurState.IsKeyDown(Keys.R) && m_kbLastState.IsKeyUp(Keys.R)){
+
+				foreach (HexTile h in atGame.GameBoard.GetTileList())
+				{
+					
+				}
 			}
 
 		}

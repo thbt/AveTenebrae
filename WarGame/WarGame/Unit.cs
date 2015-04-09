@@ -39,7 +39,7 @@ namespace WarGame
 		protected Vector2 nextDest;
 		protected HexTile nextDestTile;
 		public Vector2 SpriteCenter { get { return new Vector2(SpritePosition.X+Width/2,SpritePosition.Y+Height/2); } }
-		
+        public SpriteEffects spriteFlipX = SpriteEffects.FlipHorizontally;
         public Player Owner { get; protected set; }
 
 		public SoundEffect ScreamSound { get; protected set; }
@@ -57,7 +57,7 @@ namespace WarGame
 		}
 		public bool VisibleToOpponent { get { return CheckVisibility(); } }
 
-		public HashSet<Unit> Attackers { get; protected set; }
+		public List<Unit> Attackers { get; protected set; }
 
 		public int MovementPoints {get; protected set;}
 		public readonly int Movement;		
@@ -66,9 +66,9 @@ namespace WarGame
 		public readonly int Range;
 		public readonly int RangedStrength;
 
-		public int TotalRangedAttack { get { return RangedStrength + OccupiedHex.atkBonus; } }
-		public int TotalAttack { get { return BaseStrength + OccupiedHex.atkBonus; } }
-		public int TotalDefense { get { return BaseStrength + OccupiedHex.defBonus; } }
+        public int TotalRangedAttack { get { /*Console.WriteLine("BaseRangeAtk: " + RangedStrength + " - Bonus: " + OccupiedHex.atkBonus); */return RangedStrength + OccupiedHex.atkBonus; } }
+		public int TotalAttack { get { /*Console.WriteLine("BaseAtk: "+BaseStrength +" - Bonus: "+ OccupiedHex.atkBonus); */return BaseStrength + OccupiedHex.atkBonus; } }
+        public int TotalDefense { get {/* Console.WriteLine("BaseDef: " + BaseStrength + " - Bonus: " + OccupiedHex.atkBonus);*/ return BaseStrength + OccupiedHex.defBonus; } }
 
 		protected bool m_freeze = false;
 		public bool Freeze { get { return m_freeze; } 
@@ -98,7 +98,7 @@ namespace WarGame
 		{
 			// TODO: Construct any child components here
 			
-			Attackers = new HashSet<Unit>();
+			Attackers = new List<Unit>();
 			ExecuteActions += delegate(GameTime gameTime) { };
 			InfoPopup = new UnitContextInfo(game, this);
 			//ReachableHexes = new List<HexTile>();
@@ -117,7 +117,8 @@ namespace WarGame
 			Range=range;
 			RangedStrength=rangedStr;
 			Owner = owner;
-			
+            if (owner == atGame.PlayerB)
+                spriteFlipX = SpriteEffects.None;
 			// TODO: Construct any child components here
 		}
 
@@ -291,7 +292,8 @@ namespace WarGame
 				if ( mark){
 					if (attacker.AttackableHexes.Contains(this.OccupiedHex) && this.OccupiedHex.Occupant.Owner == atGame.OpposingPlayer)
 					{
-						Attackers.Add(attacker);
+                        if (!Attackers.Contains(attacker)) ;
+						    Attackers.Add(attacker);
 						this.SetColorBlink(atGame.ActivePlayer.GetColorBlinkList(), 0.5f, true, false, true);
 					}											
 				}
@@ -308,6 +310,11 @@ namespace WarGame
 			Console.WriteLine(this.ThreatsToString());
 			return Attackers.Contains(attacker);
 		}
+
+        public bool TakeDamageAndReportDeath(int damageTaken)
+        {
+            return ((HealthPoints -= damageTaken) <= 0);
+        }
 
 
 		public void PutOnHex(HexTile hex)
@@ -354,7 +361,7 @@ namespace WarGame
 			
 			sprOrigin += (nextDest - OccupiedHex.SpritePosition) * moveSpeed / totalDist;
 
-			Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
+			//Console.WriteLine(unitClass + " at " + sprOrigin + " moving to " + nextDest);
 			if (Vector2.Distance(SpritePosition, nextDest) <= 0.5f * moveSpeed)
 			{
 				if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
@@ -414,7 +421,7 @@ namespace WarGame
 					base.DrawFX(gameTime);
 
 					//hex
-					this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition+bounceOffset, drawArea, finalColor);
+                    this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition + bounceOffset, drawArea, finalColor, 0f, Vector2.Zero,1f, spriteFlipX, 0f);
 
 					this.spriteBatch.End();
 					base.Draw(gameTime);
