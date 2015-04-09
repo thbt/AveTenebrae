@@ -162,11 +162,12 @@ namespace WarGame {
 				}
 
 				foreach(HexTile next in current.GetNeighbours()) {
-					int newCost = costSoFar[current] + next.FinalCost;
+					int newCost = (costSoFar[current] + next.FinalCost);
 					if(!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
 						costSoFar.Add(next, newCost);
-						int heuristic = Math.Abs(next.GridPosition.X - goal.GridPosition.X) + 
-							Math.Abs(next.GridPosition.Y - goal.GridPosition.Y);
+						/*int heuristic = Math.Abs(next.GridPosition.X - goal.GridPosition.X) + 
+							Math.Abs(next.GridPosition.Y - goal.GridPosition.Y);*/
+                        int heuristic = 0;
 						int priority = newCost + heuristic;
 						frontier.Enqueue(next, priority);
 						cameFrom.Add(next, current);
@@ -183,6 +184,7 @@ namespace WarGame {
 				path.Add(currentTile);
 			}
 
+            path.Reverse();
 			return path;
 		}
 
