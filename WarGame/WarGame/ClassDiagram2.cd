@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="AStar.AStarHeuristic" Collapsed="true">
+    <Position X="0.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAAAAAAAAAAAIAAAAAAAAACAAAAAIAAAAAAA=</HashCode>
+      <FileName>AStar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AStar.ASState" Collapsed="true">
+    <Position X="4.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAAgAAAAAAAAAAAAgAgBAAAAgAAAAA=</HashCode>
+      <FileName>AStar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AStar.AStarSolver" Collapsed="true">
+    <Position X="3.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAAgAAAAAAACAAAAAAAACIAAAQAAIIAAA=</HashCode>
+      <FileName>AStar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.ATComponent" Collapsed="true">
+    <Position X="6.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ATBaseComponent.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.ATDrawableComponent" Collapsed="true">
+    <Position X="10.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>KAAAKFAAwIkEhwEBoCACAAQIAAAIABAAgCEMIgACAog=</HashCode>
+      <FileName>ATBaseComponent.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.ATGame" Collapsed="true">
+    <Position X="21.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>iBQQEHAACkAAJwKAkAwACCBAwEBABAggAAEAAAEhgAY=</HashCode>
+      <FileName>ATGame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.BaseCursor" Collapsed="true">
+    <Position X="1.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAQAAAAAAAAAAwAAAAAAIAAAEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BaseCursor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Board" Collapsed="true">
+    <Position X="3.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAQAEAAAAEAACwgABAQAAAAASAAAAIAAAAIAACIAAkU=</HashCode>
+      <FileName>Board.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.FreeCursor" Collapsed="true">
+    <Position X="1.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAwAAAAAAAAAAAAAAAAAgAAAAAAAAAAQ=</HashCode>
+      <FileName>FreeCursor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.HexTile" Collapsed="true">
+    <Position X="8" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAYAwICMtNAGAwgACAAAQEBwAQASAEAAAIgMygAIAgQ=</HashCode>
+      <FileName>HexTile.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="WarGame.InputManager" Collapsed="true">
+    <Position X="6.5" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AASIAQAKIAAQEQAADGCwCCAAgAABgAACEECAAAgQEgI=</HashCode>
+      <FileName>InputManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.PathFinder" Collapsed="true">
+    <Position X="3.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PathFinder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.HexNode" Collapsed="true">
+    <Position X="4.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAgAAAAAAABgAAAAAAAAAAAAIAABAAAAAAAAAE=</HashCode>
+      <FileName>PathFinder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.PathExplorer" Collapsed="true">
+    <Position X="0.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAAAAAAAAAAAIAAAAAAAAACAAAAAIAIAAAAA=</HashCode>
+      <FileName>PathFinder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Player" Collapsed="true">
+    <Position X="10.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAEAAAQxAABgQcAAQAAAAAAAAAAIAAAgAAQAA=</HashCode>
+      <FileName>Player.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.PriorityQueue&lt;T&gt;" Collapsed="true">
+    <Position X="23.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAABAAAAAAAAQAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PriorityQueue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Program" Collapsed="true">
+    <Position X="25.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.ResourceManager" Collapsed="true">
+    <Position X="21.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAABAAAQAAAAAAAAAA=</HashCode>
+      <FileName>ResourceManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.ScreenOverlay" Collapsed="true">
+    <Position X="5.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQIABdAEAEAQwIAAAgkIQIAAMAwICAAIBIAEAAACBQ=</HashCode>
+      <FileName>ScreenOverlay.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.TeamColors" Collapsed="true">
+    <Position X="23.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>TeamColors.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Unit" Collapsed="true">
+    <Position X="14.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YIQQBsmEVNmBq2oEBAQgWEBkCacYiCRAHEgCUAC4CEY=</HashCode>
+      <FileName>Unit.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="WarGame.UnitContextInfo" Collapsed="true">
+    <Position X="19.25" Y="2" Width="1.5" />
+    <InheritanceLine Type="WarGame.ATDrawableComponent" ManuallyRouted="true">
+      <Path>
+        <Point X="11" Y="1.156" />
+        <Point X="11" Y="1.471" />
+        <Point X="20" Y="1.471" />
+        <Point X="20" Y="2" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>KAQAJICCBZEBAwgAEAAACEAFABEUAAEQAQAAABIACAQ=</HashCode>
+      <FileName>UnitContextInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.HeavyKnight" Collapsed="true">
+    <Position X="17" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>UnitSubclasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Cavalry" Collapsed="true">
+    <Position X="12.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAQ=</HashCode>
+      <FileName>UnitSubclasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WarGame.Archer" Collapsed="true">
+    <Position X="14.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAQ=</HashCode>
+      <FileName>UnitSubclasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="WarGame.ISelectable" Collapsed="true">
+    <Position X="21.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAIAAA=</HashCode>
+      <FileName>ISelectable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="8.25" />
+</ClassDiagram>

@@ -71,17 +71,23 @@ namespace WarGame {
 
 		public ATGame() {
 			graphics = new GraphicsDeviceManager(this);
-			
-			ScreenWidth = 1280;
-			ScreenHeight = 720;
-			
-			ScreenWidth = 1024;
-			ScreenHeight = 768;
+
+            bool demo = false;
+
+            if (!demo)
+            {
+                ScreenWidth = 1280; ScreenHeight = 720;
+            }
+            else
+            {
+                ScreenWidth = 1024; ScreenHeight = 768;
+                graphics.IsFullScreen = true;
+            }
 		
 			graphics.PreferredBackBufferWidth = ScreenWidth;
 			graphics.PreferredBackBufferHeight = ScreenHeight;
 			graphics.SynchronizeWithVerticalRetrace = true;
-			graphics.PreferMultiSampling = true;			
+			//graphics.PreferMultiSampling = true;			
 			graphics.ApplyChanges();
             Content.RootDirectory = "Content";
             m_helpers = new HashSet<Unit>();
@@ -406,6 +412,7 @@ namespace WarGame {
                         float ratioDef = (scoreDef + 1) / (scoreAtk + 1);
                         int dice = ResourceManager.Random.Next(1, 7);
                         int dmgAtk = (int)Math.Ceiling(ratioAtk * dice);
+                        dice = ResourceManager.Random.Next(1, 7);
                         int dmgDef= (int)Math.Ceiling(ratioDef * dice);
 
                         Console.WriteLine("Score Atk  = " + scoreAtk + " - Score Def = " + scoreDef);

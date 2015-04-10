@@ -42,7 +42,7 @@ namespace WarGame {
 				{f,f,f,f,p,h,h,h,h,h,p,h,f},
                 {h,h,h,h,p,h,p,h,p,p,f,f,f},
             };*/
-			int[,] tmpMap = new int[12, 9];
+			int[,] tmpMap = new int[14, 19];
 			for (int y=0; y<tmpMap.GetLength(0); y++)
 				for (int x=0; x < tmpMap.GetLength(1); x++)
 				{

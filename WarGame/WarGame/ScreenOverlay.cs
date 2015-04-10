@@ -114,7 +114,7 @@ namespace WarGame
 
 		private void DrawTopPanelItems(GameTime gameTime)
 		{
-			spriteBatch.Draw(m_topPanelBG, TopPanelArea, Color.Black * 0.25f);
+			spriteBatch.Draw(m_topPanelBG, TopPanelArea, Color.Black * 0.5f);
 			Vector2 slotSize = new Vector2(TopPanelArea.Width/4,TopPanelArea.Height/2);
 			Vector2 textOffset = new Vector2(16, slotSize.Y / 16);
 			int row = 0, col = 0;
