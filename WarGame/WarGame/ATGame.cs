@@ -202,10 +202,11 @@ namespace WarGame {
 			if (ActivePlayer.SelectedHex != null)
 				ActivePlayer.SelectedHex.UnSelect();
 
-			ActivePlayer.UnfreezeUnits();
             ActivePlayer.ResetUnitStatus();
-			OpposingPlayer.UnfreezeUnits();
+			ActivePlayer.UnfreezeUnits();
             OpposingPlayer.ResetUnitStatus();
+			OpposingPlayer.UnfreezeUnits();
+            
 		}
 
 
@@ -449,8 +450,9 @@ namespace WarGame {
                     //joue une fois par groupe de combat tant qu'il en reste
                     if (m_battleSubPhase == BattleSubPhase.StartDeathAnim  && m_killed.Count > 0 )
 					{
-					
-						foreach (Unit k in m_killed) { k.Kill();}
+
+                        m_killed.ElementAt(0).ScreamSound.Play(0.75f, 0, 0);
+						foreach (Unit k in m_killed) { k.Kill(true); }
                         m_battleSubPhase = BattleSubPhase.PlayDeathAnim;
 					}
                     //verification periodique que l'animation de mort des unités est finie ou non 
@@ -497,10 +499,19 @@ namespace WarGame {
                     m_battleSubPhase = BattleSubPhase.CalculateOutcome;
                     //u.Attackers.Reverse();
                     foreach (Unit atk in m_atkers)
-						atk.AttackSound.Play();
+                    {
+                        atk.AttackSound.Play();
+                        atk.Slash();
+                    }
+
                     foreach (Unit def in m_helpers)
+                    {
                         def.AttackSound.Play();
+                        def.Slash();
+                    }
+                       
                     u.AttackSound.Play();
+                    u.Slash();
 
 					m_genericTimer2 = -1f;
 				}
@@ -533,7 +544,7 @@ namespace WarGame {
 		private void GameOverPhase(GameTime gameTime)
 		{
 			m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			
+            MediaPlayer.Volume -= m_phaseChangeTimer / 10000;
 			if ((int)m_phaseChangeTimer == 10)
 			{
 				m_phaseChangeTimer++;
@@ -542,6 +553,7 @@ namespace WarGame {
 			else if ((int)m_phaseChangeTimer == 13){
 				m_currentPhaseLogic = delegate { };
 				m_phaseChangeTimer = float.PositiveInfinity;
+                MediaPlayer.Stop();
 				this.Exit();
 			}
 		}

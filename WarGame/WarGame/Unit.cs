@@ -141,6 +141,7 @@ namespace WarGame
 			spriteSheet = Game.Content.Load<Texture2D>(spriteSheet_path);
 			coloredSpriteSheet = spriteSheet;
 
+            slashSpr = Game.Content.Load<Texture2D>("slash");
 			HitSound = Game.Content.Load<SoundEffect>("Stab");
 			ScreamSound = Game.Content.Load<SoundEffect>("Wilhelm_Scream");
 			//m_sndAttack;
@@ -227,11 +228,16 @@ namespace WarGame
 
         public void ResetStatus()
         {
-            BounceEnable = false;
-            Freeze = false;
-            MovementPoints = Movement;
+            if (HealthPoints <= 0 || !Enabled || !Visible) Owner.OwnedUnits.Remove(this);
+            else
+            {
+                BounceEnable = false;
+                Freeze = false;
+                MovementPoints = Movement;
+            }
+
             Attackers.Clear();
-            if (HealthPoints <= 0) Owner.OwnedUnits.Remove(this);
+            
         }
 
 		public void Kill(bool silentDeath=false)
@@ -518,7 +524,7 @@ namespace WarGame
 
 					//hex
                     this.spriteBatch.Draw(coloredSpriteSheet, SpritePosition + bounceOffset, drawArea, finalColor, 0f, Vector2.Zero,1f, spriteFlipX, 0f);
-
+                    DrawSpriteOverlay(gameTime);
 					this.spriteBatch.End();
 					base.Draw(gameTime);
 				}
@@ -531,6 +537,33 @@ namespace WarGame
 			Desaturate();
 			finalColor = new Color(grey * colorMultiplier + colorOffset * colorOffset.W);
 		}
+
+        private float slashTimer = 0f;
+        private Texture2D slashSpr;
+        private DrawDelegate DrawSpriteOverlay = delegate { };
+        public void DrawSlash(GameTime gameTime)
+        {
+            float slashDuration = 0.25f;
+            slashTimer=(slashTimer+(float)gameTime.ElapsedGameTime.TotalSeconds);
+            if (slashTimer > slashDuration)
+            {
+                DrawSpriteOverlay -= DrawSlash;
+                slashTimer = 0;
+            }
+            else{
+                int nbFrames = 5;
+                int frame = (int)(slashTimer / slashDuration * nbFrames);
+                spriteBatch.Draw(slashSpr, SpritePosition, new Rectangle(frame * slashSpr.Width / nbFrames, 0, slashSpr.Width / nbFrames, slashSpr.Height), Color.White);
+            }
+
+            
+        }
+
+        public void Slash()
+        {
+            slashTimer=0;
+            DrawSpriteOverlay += DrawSlash;
+        }
 
 		public void HighlightMovementRange(bool highlight=true)
 		{
