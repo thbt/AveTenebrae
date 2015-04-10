@@ -81,7 +81,7 @@ namespace WarGame
 				if (atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 					ResetRangeGraphics();
 			}
-				else if (!value)
+				else if (m_freeze && !value)
 			{
 				DrawFX -= DrawFrozen; Console.WriteLine("UnFreezing unit");
 				PaletteSwap(Owner.TeamColor);
@@ -167,8 +167,6 @@ namespace WarGame
 		{
 			Unit prev = atGame.ActivePlayer.SelectedUnit;
 
-			if (Enabled)
-				atGame.ActivePlayer.SelectedUnit = this;
 
 			//deselectionner la precedente unité
 			if (prev != null)
@@ -178,13 +176,17 @@ namespace WarGame
 
 				prev.UnSelect();
 			}
+
+            if (Enabled)
+                atGame.ActivePlayer.SelectedUnit = this;
+
 			
 			if (this != prev &&  atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch)
 				ResetRangeGraphics();
 
-			if (Enabled && this == atGame.ActivePlayer.SelectedUnit)
+			if (this == atGame.ActivePlayer.SelectedUnit)
 			{
-				this.InfoPopup.Show();
+				
 
 				if (atGame.CurrentPhase == ATGame.GamePhase.GP_Movement)
 					this.HighlightMovementRange();
@@ -192,6 +194,7 @@ namespace WarGame
 					if (atGame.CurrentPhase == ATGame.GamePhase.GP_Combat)
 						this.HighlightAttackRange();
 
+                this.InfoPopup.Show();
 				this.SetAlphaBlink(0, 0.5f, 1f, 1.5f, true);
 			}
 						
@@ -206,13 +209,14 @@ namespace WarGame
 				ResetRangeGraphics();
 				OccupiedHex.ResetGraphics();
 			}
-
+            
 			colorOffset = Vector4.Zero;
 
 			AlphaBlinkEnable = false;
 			BounceEnable = false;
 			ColorBlinkEnable = false;
 			this.InfoPopup.Hide();
+            atGame.ActivePlayer.SelectedUnit = null;
 			//atGame.ActivePlayer.SelectedUnit = null;
 		}
 
@@ -223,9 +227,11 @@ namespace WarGame
 
         public void ResetStatus()
         {
+            BounceEnable = false;
             Freeze = false;
             MovementPoints = Movement;
             Attackers.Clear();
+            if (HealthPoints <= 0) Owner.OwnedUnits.Remove(this);
         }
 
 		public void Kill(bool silentDeath=false)
@@ -422,9 +428,9 @@ namespace WarGame
                     ExecuteActions -= PathTo;
                     
                     BounceEnable = false;
-                    Console.WriteLine(unitClass + " arrived at " + nextDest);
-                    this.UnSelect();
+                    Console.WriteLine(unitClass + " arrived at " + nextDest);                    
                     Freeze = atGame.CurrentPhase != ATGame.GamePhase.GP_Dispatch && MovementPoints == 0;
+                    this.UnSelect();
                 }
                 else if (nextDestTile == OccupiedHex)
                 {

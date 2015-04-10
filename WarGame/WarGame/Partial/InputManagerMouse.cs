@@ -141,6 +141,7 @@ namespace WarGame
 					if (u.IsUnderCursor(m_mCurState))
 					{
 						Console.WriteLine("___click");
+                        
 						clickedUnit = u;
 						clickedUnit.Select();
 						break;

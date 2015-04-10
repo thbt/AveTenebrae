@@ -46,6 +46,9 @@ namespace WarGame {
 
 		private float m_phaseChangeTimer = 0;
 
+        private Song m_zicFF7;
+        private Song m_zicDispatch;
+
 		public Board GameBoard { get; protected set;}
 
 		public enum GamePhase
@@ -126,6 +129,8 @@ namespace WarGame {
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 
 			ResourceManager.font = Content.Load<SpriteFont>("Fonts/Arial");
+            m_zicFF7 = Content.Load<Song>("combat");
+            m_zicDispatch = Content.Load<Song>("placement");
 			// TODO: use this.Content to load your game content here
 		}
 
@@ -206,7 +211,16 @@ namespace WarGame {
 
 		private void PrepareDispatchPhase()
 		{
+            if (MediaPlayer.State != MediaState.Playing )
+            {
+                MediaPlayer.Volume = 0.25f;
+                MediaPlayer.Play(m_zicDispatch);
+                MediaPlayer.IsRepeating = true;
+            }
+
+
 			m_currentPhaseLogic -= DispatchPhase;
+
 			int unitsPerTeam = nbArchers + nbCavalry + nbHeavyKnights;
 			int dispatchSpotsPerTeam = unitsPerTeam * 2;
 			int dispatchColumns = 3;
@@ -263,25 +277,32 @@ namespace WarGame {
 
 			if (readyA && readyB && nbFrozenUnits >= unitsPerTeam)
 			{
-				if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
-				{
-					foreach (HexTile h in GameBoard.GetTileList())
-					{
-						h.SetDispatchable(false, false);
-						h.SetHighlighted(false);
-						h.ResetGraphics(true);
-					}
-					ResetTimers();
+                if ((m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 0.5f)
+                {
+                    foreach (HexTile h in GameBoard.GetTileList())
+                    {
+                        h.SetDispatchable(false, false);
+                        h.SetHighlighted(false);
+                        h.ResetGraphics(true);
+                    }
+                    ResetTimers();
 
-					Console.WriteLine("Dispatch phase finished");
-					m_currentPhaseLogic -= DispatchPhase;
-					SwapPlayerTurns();
-					HexTile.ResetGraphics(GameBoard.GetTileList(), true);
-					m_currentPhaseLogic = MovementPhase;
-					
-					CurrentPhase = GamePhase.GP_Movement;
-					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
-				}
+                    Console.WriteLine("Dispatch phase finished");
+                    m_currentPhaseLogic -= DispatchPhase;
+                    SwapPlayerTurns();
+                    HexTile.ResetGraphics(GameBoard.GetTileList(), true);
+                    m_currentPhaseLogic = MovementPhase;
+
+                    CurrentPhase = GamePhase.GP_Movement;
+                    Overlay.DisplayMessage(ScreenOverlay.BigMessages.Movement);
+
+                    MediaPlayer.Volume = 0.35f;
+                    MediaPlayer.Play(m_zicFF7);
+
+                    m_phaseChangeTimer = 0f;
+                }
+                else
+                    MediaPlayer.Volume -= m_phaseChangeTimer/2;
 
 			}
 
@@ -314,6 +335,7 @@ namespace WarGame {
 					Overlay.DisplayMessage(ScreenOverlay.BigMessages.Combat);
 				}				
 			}
+            else m_phaseChangeTimer = 0;
 		}
 
 
@@ -341,6 +363,7 @@ namespace WarGame {
 					
                     HexTile.ResetGraphics(GameBoard.GetTileList(), true);
                     m_battleSubPhase = BattleSubPhase.StartAttack;
+                    m_phaseChangeTimer = -0.25f;
                     m_currentPhaseLogic = ExecuteBattle;
 				}
 			}			
@@ -389,7 +412,7 @@ namespace WarGame {
                         Console.WriteLine("Dmg Atk  = " + dmgAtk + " - Dmg Def = " + dmgDef);
 
                         foreach (Unit a in m_atkers){
-                           a.SetBounce(2, -1, (a.HealthPoints/a.BaseStrength)*0.5f, true, true);
+                           a.SetBounce(1, -1, (a.HealthPoints/a.BaseStrength)*0.125f, true, true);
                            
                            if ( a.TakeDamageAndReportDeath(dmgDef)){
                                m_killed.Add(a);
@@ -399,7 +422,7 @@ namespace WarGame {
                         m_helpers.Add(u);
                         foreach (Unit d in m_helpers)
                         {
-                            d.SetBounce(2, -1, (d.HealthPoints / d.BaseStrength) * 0.5f, true, true);
+                            d.SetBounce(1, -1, (d.HealthPoints / d.BaseStrength) * 0.125f, true, true);
                             if (d.TakeDamageAndReportDeath(dmgAtk))
                             {
                                 m_killed.Add(d);
@@ -420,7 +443,7 @@ namespace WarGame {
                         m_targetedUnits.Remove(u);
                         u.HitSound.Play();
                         if (m_killed.Count > 0) m_battleSubPhase = BattleSubPhase.StartDeathAnim;
-                        else m_battleSubPhase = BattleSubPhase.StartAttack;                        
+                        //else m_battleSubPhase = BattleSubPhase.StartAttack;                        
                     }
 
                     //joue une fois par groupe de combat tant qu'il en reste
@@ -489,7 +512,7 @@ namespace WarGame {
 			}
 
 			//conditions d'arret de la phase
-			if (m_targetedUnits.Count == 0 && (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
+            if ( m_targetedUnits.Count <= 0 && (m_phaseChangeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds) > 1.5f)
 			{
 				if (ActivePlayer.OwnedUnits.Count > 0
 					&& OpposingPlayer.OwnedUnits.Count > 0)
